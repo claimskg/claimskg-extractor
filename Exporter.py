@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 import sys,getopt,datetime,codecs
+sys.path.append("ce")
 import claimextractor as ce
 
 
-if sys.version_info[0] < 3:
-    import got
-else:
-    import got3 as got
+# if sys.version_info[0] < 3:
+#     import got
+# else:
+#     import got3 as got
 
 def main(argv):
+	options={} 
+	outputFileName = "output_got.csv"
 
 	if len(argv) == 0:
 		print('You must pass some parameters. Use \"-h\" to help.')
@@ -24,8 +27,7 @@ def main(argv):
 	try:
 		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output="))
 
-		options={} 
-		outputFileName = "output_got.csv"
+		
 
 		for opt,arg in opts:
 			if opt == '--website':
@@ -50,7 +52,6 @@ def main(argv):
 	except arg:
 		print('Arguments parser error, try -h' + arg)
 	finally:
-		outputFile.close()
 		print('Done. Output file generated "%s".' % outputFileName)
 
 if __name__ == '__main__':
