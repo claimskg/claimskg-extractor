@@ -6,7 +6,7 @@
 - Get tweets by username
 ``` python
 	import claimextractor as ce
-  pdf = ce.get_claims("fullfact")
+  	pdf = ce.get_claims("fullfact")
 	pdf.head()
   
 ```    
