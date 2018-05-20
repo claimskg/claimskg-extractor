@@ -1,6 +1,11 @@
-- **Main:** Examples of how to use.
+# features
 
-- **Exporter:** Export tweets to a csv file named "output_got.csv".
+- claim
+- conclusion
+- related_links
+- title
+- date
+- url
 
 ## Examples of python usage
 - Get tweets by username
