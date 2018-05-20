@@ -10,3 +10,12 @@
 	pdf.head()
   
 ```    
+
+## Examples of command-line usage
+- Get help use
+```
+    python Exporter.py -h
+``` 
+- Get tweets by website
+```
+    python Exporter.py --website "fullfact"
