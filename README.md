@@ -1,3 +1,8 @@
+# Fact-Checking
+- fullfact.org 
+- snopes.com [under implementation]
+
+
 # features
 
 - claim
@@ -8,9 +13,9 @@
 - url
 
 ## Examples of python usage
-- Get tweets by username
+- Get claims by website
 ``` python
-	import claimextractor as ce
+	import ce.claimextractor as ce
   	pdf = ce.get_claims("fullfact")
 	pdf.head()
   
@@ -21,6 +26,6 @@
 ```
     python Exporter.py -h
 ``` 
-- Get tweets by website
+- Get claims by website
 ```
     python Exporter.py --website "fullfact"
