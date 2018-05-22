@@ -3,8 +3,8 @@ import urllib2
 from BeautifulSoup import BeautifulSoup
 import datetime
 
-def get_all_claims():
-
+def get_all_claims(criteria):
+	print criteria.maxClaims
 	#performing a search by each letter, and adding each article to a urls_ var.
 
 
@@ -14,8 +14,9 @@ def get_all_claims():
 	urls_={}
 	for type_ in ["verdadeiro","impreciso","exagerado","contraditorio","insustentavel","falso"]:
 		for page_number in range (1,500):
+			if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
+				break
 			try:
-				print "http://aosfatos.org/noticias/checamos/"+str(type_)+"/?page="+str(page_number)
 				page = urllib2.urlopen("http://aosfatos.org/noticias/checamos/"+str(type_)+"/?page="+str(page_number)).read()
 			except:
 				break
@@ -26,6 +27,8 @@ def get_all_claims():
 			if len(links) != 0:
 				for anchor in links:
 					if (anchor['href'] not in urls_.keys()):
+						if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
+							break
 						urls_[anchor['href']]=type_
 						print "adding "+str(anchor['href'])
 			else:

@@ -2,7 +2,7 @@ import pandas as pd
 import urllib2
 from BeautifulSoup import BeautifulSoup
 
-def get_all_claims():
+def get_all_claims(criteria):
 
 	#performing a search by each letter, and adding each article to a urls_fullfact var.
 

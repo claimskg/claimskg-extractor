@@ -1,9 +1,12 @@
 import pandas as pd
 import urllib2
-from BeautifulSoup import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import datetime
+import re
+import dateparser
 
-def get_all_claims():
+def get_all_claims(criteria):
 
 	#performing a search by each letter, and adding each article to a urls_ var.
 
@@ -13,24 +16,28 @@ def get_all_claims():
 
 	urls_={}
 	for year in range (2015,now.year+1):
-	    for month in range (1,13):
-	        try:
-	            page = urllib2.urlopen("http://piaui.folha.uol.com.br/lupa/"+str(year)+"/"+str(month)+"/").read()
-	        except:
-	            break
-	        soup = BeautifulSoup(page)
-	        soup.prettify()
+		for month in range (1,13):
+			if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
+				break
+			try:
+				page = urllib2.urlopen("http://piaui.folha.uol.com.br/lupa/"+str(year)+"/"+str(month)+"/").read()
+			except:
+				break
+			soup = BeautifulSoup(page)
+			soup.prettify()
 
-	        links = soup.find('div', {"class": "lista-noticias"}).findAll('a', href=True)
-	        if len(links) != 0:
-	            for anchor in links:
-	            	if (anchor['href'] not in urls_.keys()):
-		                urls_[anchor['href']]=[year,month]
-		            	print "adding "+str(anchor['href'])
-	            #[l,page_number]
-	        else:
-	            print ("break!")
-	            break
+			links = soup.find('div', {"class": "lista-noticias"}).findAll('a', href=True)
+			if len(links) != 0:
+				for anchor in links:
+					if (anchor['href'] not in urls_.keys()):
+						urls_[anchor['href']]=[year,month]
+						print "adding "+str(anchor['href'])
+						if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
+							break
+			   
+			else:
+			    print ("break!")
+			    break
 
 	claims=[]
 	index=0
@@ -40,6 +47,7 @@ def get_all_claims():
 		index+=1
 		record={}
 		record['claim']=""
+		record['body']=""
 		record['conclusion']=""
 		record['related_links']=""
 		record['origin_links']=""
@@ -64,15 +72,16 @@ def get_all_claims():
 		record['origin_links']=quote_links
 
 		#claim
-		claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
+
+		claim = soup.find('div', {"class": "etiqueta"})
 		if claim :
-		    record['claim']=str(claim)
+		    record['claim']=claim.find_previous('strong').get_text().encode('utf-8').replace("<strong>","").replace("</strong>","")
 
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})
 		if conclusion :
-			record['conclusion']=str(conclusion)
+			record['conclusion']=str(conclusion.get_text())
 
 		    
 		    
@@ -80,6 +89,12 @@ def get_all_claims():
 		title=soup.find("h2", {"class": "bloco-title"})
 		record['title']=title.text
 
+		#date
+		date=soup.find("div", {"class": "bloco-meta"})
+		record['date']=dateparser.parse(date.text).strftime("%Y-%m-%d")
+
+
+		
 
 		#related links
 		divTag = soup.find("div", {"class": "post-inner"})
@@ -89,6 +104,9 @@ def get_all_claims():
 		record['related_links']=related_links
 
 
+		#related links
+		body = soup.find("div", {"class": "post-inner"})
+		record['body']=body.get_text()
 
 		claims.append(record)
     
