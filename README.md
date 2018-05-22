@@ -1,8 +1,8 @@
 ## Fact-Checking
-# English
+### English
 - fullfact.org 
 - snopes.com [under implementation]
-# Portuguese
+### Portuguese
 - Lupa – http://piaui.folha.uol.com.br/lupa/ [under implementation]
 - Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ [under implementation]
 - Publica – https://apublica.org/checagem/ [under implementation]
@@ -10,7 +10,7 @@
 
 
 
-# features
+## features
 
 - claim
 - conclusion
