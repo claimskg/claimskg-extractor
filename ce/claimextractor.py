@@ -11,5 +11,5 @@ def get_claims(website):
 	module = __import__(website)
 	func = getattr(module, "get_all_claims")
 	pdf = func()
-	pdf.to_csv("output.csv")
+	pdf.to_csv("output.csv", encoding="utf8")
 
