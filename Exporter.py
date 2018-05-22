@@ -30,7 +30,7 @@ def main(argv):
 		return
 
 	try:
-		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output="))
+		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output=","language="))
 
 		
 		
@@ -46,6 +46,9 @@ def main(argv):
 
 			elif opt == '--maxclaims':
 				criteria.maxClaims = int(arg)
+
+			elif opt == '--language':
+				criteria.language = arg
 
 			elif opt == '--output':
 				criteria.output = arg

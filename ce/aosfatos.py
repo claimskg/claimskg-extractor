@@ -1,7 +1,10 @@
 import pandas as pd
 import urllib2
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 import datetime
+import dateparser
+import copy
+
 
 def get_all_claims(criteria):
 	print criteria.maxClaims
@@ -20,7 +23,7 @@ def get_all_claims(criteria):
 				page = urllib2.urlopen("http://aosfatos.org/noticias/checamos/"+str(type_)+"/?page="+str(page_number)).read()
 			except:
 				break
-			soup = BeautifulSoup(page)
+			soup = BeautifulSoup(page,"lxml")
 			soup.prettify()
 
 			links = soup.findAll('a',{"class":"card third"}, href=True)
@@ -39,65 +42,80 @@ def get_all_claims(criteria):
 	index=0
 	# visiting each article's dictionary and extract the content.
 	for url, conclusion in urls_.iteritems():  
+
+
+
 		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
 		index+=1
-		record={}
-		record['claim']=""
-		record['conclusion']=""
-		record['related_links']=""
-		record['origin_links']=""
-		record['title']=""
-		record['date']=""
-		record['url']=""
+		
 	    
 
 
 		url_complete="https://aosfatos.org/"+str(url)
-		record['url']=url_complete
+
 		#print url_complete
 		page = urllib2.urlopen(url_complete).read()
-		soup = BeautifulSoup(page)
+		soup = BeautifulSoup(page, "lxml")
 		soup.prettify()
 
-		#orign_links
-		quote_links=[]
-		if (soup.find('blockquote')):
-		    for link in soup.find('blockquote').findAll('a', href=True):
-		        quote_links.append(link['href'])
-		record['origin_links']=quote_links
+		for claim_ in soup.findAll("blockquote"):
 
-		#claim
-		claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
-		if claim :
-		    record['claim']=str(claim)
-
-
-		#conclusin
-		record['conclusion']=str(conclusion)
+			record={}
+			record['url']=url_complete
+			record['source']="aosfatos"
+			record['claim']=""
+			record['body']=""
+			record['conclusion']=""
+			record['refered_links']=""
+			record['title']=""
+			record['date']=""
 
 
-		#date
-		date = soup.find('p', {"class": "publish_date"})
-		if date :
-		    record['date']=str(date)
+
+			#date
+			date_ = soup.find('p', {"class": "publish_date"})
+			if date_ :
+				date_str=date_.get_text().replace("\n","").replace("  ","").split(",")[0]
+				record['date']=dateparser.parse(date_str).strftime("%Y-%m-%d")
+
+			#title
+			title=soup.findAll("h1")
+			record['title']=title[1].text
+
+
+			#body
+			body=soup.find("article")
+			record['body']=body.get_text().replace("\n","")
+
+			#related links
+			divTag = soup.find("article").find("hr")
+			related_links=[]
+			for link in divTag.find_all_next('a', href=True):
+			    related_links.append(link['href'])
+			record['refered_links']=related_links
+
+
+
+			#verifing how many clains have
+			
+
+			#claim
+			record['claim']=str(claim_.get_text().encode('utf-8')).replace("\n","")
+			#record['claim']="dddd"
+			#conclusin
+			if (claim_.find_previous_sibling("figure") and claim_.find_previous_sibling("figure").find("figcaption")):
+				record['conclusion']= claim_.find_previous_sibling("figure").find("figcaption").get_text()
+
+			claims.append(record)
+
+
+
 
 		
 
-		#title
-		title=soup.findAll("h1")
-		record['title']=title[1].text
-
-
-		# #related links
-		# divTag = soup.find("hr").next_sibling
-		# related_links=[]
-		# for link in divTag.findAll('a', href=True):
-		#     related_links.append(link['href'])
-		# record['related_links']=related_links
 
 
 
-		claims.append(record)
     
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)

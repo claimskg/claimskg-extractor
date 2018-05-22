@@ -1,6 +1,5 @@
 import pandas as pd
 import urllib2
-#from BeautifulSoup import BeautifulSoup
 from bs4 import BeautifulSoup
 import datetime
 import re
@@ -23,7 +22,7 @@ def get_all_claims(criteria):
 				page = urllib2.urlopen("http://piaui.folha.uol.com.br/lupa/"+str(year)+"/"+str(month)+"/").read()
 			except:
 				break
-			soup = BeautifulSoup(page)
+			soup = BeautifulSoup(page,"lxml")
 			soup.prettify()
 
 			links = soup.find('div', {"class": "lista-noticias"}).findAll('a', href=True)
@@ -46,11 +45,11 @@ def get_all_claims(criteria):
 		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
 		index+=1
 		record={}
+		record['source']="lupa"
 		record['claim']=""
 		record['body']=""
 		record['conclusion']=""
-		record['related_links']=""
-		record['origin_links']=""
+		record['refered_links']=""
 		record['title']=""
 		record['date']=""
 		record['url']=""
@@ -61,27 +60,21 @@ def get_all_claims(criteria):
 		record['url']=url_complete
 		#print url_complete
 		page = urllib2.urlopen(url_complete).read()
-		soup = BeautifulSoup(page)
+		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
 
-		#orign_links
-		quote_links=[]
-		if (soup.find('blockquote')):
-		    for link in soup.find('blockquote').findAll('a', href=True):
-		        quote_links.append(link['href'])
-		record['origin_links']=quote_links
+		
 
 		#claim
-
-		claim = soup.find('div', {"class": "etiqueta"})
+		claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
 		if claim :
-		    record['claim']=claim.find_previous('strong').get_text().encode('utf-8').replace("<strong>","").replace("</strong>","")
+		    record['claim']=claim.find_previous('strong').get_text()
 
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})
 		if conclusion :
-			record['conclusion']=str(conclusion.get_text())
+			record['conclusion']=conclusion.get_text()
 
 		    
 		    
@@ -91,7 +84,7 @@ def get_all_claims(criteria):
 
 		#date
 		date=soup.find("div", {"class": "bloco-meta"})
-		record['date']=dateparser.parse(date.text).strftime("%Y-%m-%d")
+		record['date']=dateparser.parse(date.text.split("|")[0]).strftime("%Y-%m-%d")
 
 
 		
@@ -101,7 +94,7 @@ def get_all_claims(criteria):
 		related_links=[]
 		for link in divTag.findAll('a', href=True):
 		    related_links.append(link['href'])
-		record['related_links']=related_links
+		record['refered_links']=related_links
 
 
 		#related links
