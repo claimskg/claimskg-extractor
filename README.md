@@ -29,6 +29,7 @@
 ```    
 
 ## Examples of command-line usage
+Export claims to a csv file named "output_got.csv".
 - Get help use
 ```
     python Exporter.py -h
