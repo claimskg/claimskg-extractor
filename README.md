@@ -12,12 +12,15 @@
 
 ## features
 
-- claim
-- conclusion
-- related_links
-- title
-- date
-- url
+- "Claim"					: Textual claim which is being verified
+- "Credibility"			: true/false
+- "URL"					: URL of the corresponding snopes page
+- "Origins"				: Description of how the claim was originated. Corresponds to the "Origin" section in the Snopes - - article
+- "Example"				: Example of how Snopes spotted the claim. Corresponds to the "Example" section in the Snopes -  -- article
+- "Description"			: Description provided in the Snopes article about why the claim is true or false
+- "Date"	: Date when the Snopes article was published
+- "Referred Links"		: References used for verifying the claim. Corresponds to "Sources" section in the Snopes article
+- "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
 
 ## Examples of python usage
 - Get claims by website
