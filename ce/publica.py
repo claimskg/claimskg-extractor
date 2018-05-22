@@ -12,5 +12,9 @@ def get_all_claims(criteria):
     page = request.read()
     soup = BeautifulSoup(page, 'lxml')
 
+    pages_links = soup.findAll('a', {"class": "page-link"})
+    number_of_pages = int(pages_links[::-1][1].text)
+    print('Number of pages: ' + str(number_of_pages))
+
     pdf = pd.DataFrame(claims)
     return pdf
