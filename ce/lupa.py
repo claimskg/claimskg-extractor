@@ -4,15 +4,11 @@ from bs4 import BeautifulSoup
 import datetime
 import re
 import dateparser
+import Claim as claim_obj
 
 def get_all_claims(criteria):
-
 	#performing a search by each letter, and adding each article to a urls_ var.
-
-
 	now = datetime.datetime.now()
-
-
 	urls_={}
 	for year in range (2015,now.year+1):
 		for month in range (1,13):
@@ -24,7 +20,6 @@ def get_all_claims(criteria):
 				break
 			soup = BeautifulSoup(page,"lxml")
 			soup.prettify()
-
 			links = soup.find('div', {"class": "lista-noticias"}).findAll('a', href=True)
 			if len(links) != 0:
 				for anchor in links:
@@ -33,7 +28,6 @@ def get_all_claims(criteria):
 						print "adding "+str(anchor['href'])
 						if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
 							break
-			   
 			else:
 			    print ("break!")
 			    break
@@ -44,64 +38,44 @@ def get_all_claims(criteria):
 	for url in urls_.keys():
 		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
 		index+=1
-		record={}
-		record['source']="lupa"
-		record['claim']=""
-		record['body']=""
-		record['conclusion']=""
-		record['refered_links']=""
-		record['title']=""
-		record['date']=""
-		record['url']=""
-	    
-
-
+		claim_ =  claim_obj.Claim()
+		claim_.setSource("lupa")
 		url_complete=url
-		record['url']=url_complete
-		#print url_complete
+		claim_.setUrl(url_complete)
 		page = urllib2.urlopen(url_complete).read()
 		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
-
 		
-
 		#claim
 		claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
 		if claim :
-		    record['claim']=claim.find_previous('strong').get_text()
-
+		    claim_.setClaim(claim.find_previous('strong').get_text())
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})
 		if conclusion :
-			record['conclusion']=conclusion.get_text()
-
-		    
+			claim_.setConclusion(conclusion.get_text())
 		    
 		#title
 		title=soup.find("h2", {"class": "bloco-title"})
-		record['title']=title.text
+		claim_.setTitle(title.text)
 
 		#date
 		date=soup.find("div", {"class": "bloco-meta"})
-		record['date']=dateparser.parse(date.text.split("|")[0]).strftime("%Y-%m-%d")
-
-
-		
+		claim_.setDate(dateparser.parse(date.text.split("|")[0]).strftime("%Y-%m-%d"))
 
 		#related links
 		divTag = soup.find("div", {"class": "post-inner"})
 		related_links=[]
 		for link in divTag.findAll('a', href=True):
 		    related_links.append(link['href'])
-		record['refered_links']=related_links
-
+		claim_.setRefered_links(related_links)
 
 		#related links
 		body = soup.find("div", {"class": "post-inner"})
-		record['body']=body.get_text()
+		claim_.setBody(body.get_text())
 
-		claims.append(record)
+		claims.append(claim_.getDict())
     
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
