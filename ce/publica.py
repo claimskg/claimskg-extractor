@@ -2,6 +2,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import urllib2
 import Claim as claim_obj
+import dateparser
 
 
 ignore_urls = ['https://apublica.org/2017/07/truco-7-fatos-sobre-a-reforma-trabalhista/',
@@ -41,41 +42,32 @@ def get_all_claims(criteria):
 
             contr = 0
             claims_ = []
-            #claim_ = {'body': ""}
-            claim_ =  claim_obj.Claim()
-            claim_.setUrl(f_link)
-            claim_.setSource("publica")
-
+            date_ = soup2.find('span', {'class': 'date'}).text
+            claim_ = new_claim(f_link, date_)
             stop = False
             for c in soup2.find('div', {'class', 'post-contents'}).contents:
                 if c.name is None: continue
-                #print(c.name)
                 if c.name == 'hr':
                     if stop:
-                        #claims_.append(claim_)
-                        #claim_ = {'body': ""}
-                        claim_.setBody("")
+                        claims.append(claim_.getDict())
+                        claim_ = new_claim(f_link, date_)
                         stop = False
                     contr = 1
                     continue
                 if contr == 1:
                     claim_.setClaim(c.text)
-                    #claim_['claim'] = c.text
                     contr = 2
                     if c.find('img'):
-                        #claim_['credibility'] = c.img['alt']
                         claim_.setConclusion(c.img['alt'])
                         contr = 3
                     stop = True
                     continue
                 if contr == 2:
-                    #claim_['credibility'] = c.img['alt']
                     claim_.setConclusion(c.img['alt'])
                     contr = 3
                     continue
                 if contr == 3:
                     claim_.setBody(claim_.body+"\n" + c.text)
-                    #claim_['body'] += "\n" + c.text
             if stop:
                 claims.append(claim_.getDict())
 
@@ -88,3 +80,14 @@ def get_soup(url):
     request = urllib2.urlopen(urllib2.Request(url, data=None, headers={'User-Agent': user_agent}))
     page = request.read()
     return BeautifulSoup(page, 'lxml')
+
+
+def new_claim(f_link, date):
+    claim_ = claim_obj.Claim()
+    claim_.setUrl(f_link)
+    date_ = date.strip().split()
+    date_ = "-".join([date_[4], date_[2], date_[0]])
+    claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
+    claim_.setSource("publica")
+    claim_.setBody("")
+    return claim_
