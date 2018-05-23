@@ -3,8 +3,8 @@
 - fullfact.org 
 - snopes.com [under implementation]
 ### Portuguese
-- Lupa – http://piaui.folha.uol.com.br/lupa/ [under implementation]
-- Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ [under implementation]
+- Lupa – http://piaui.folha.uol.com.br/lupa/ 
+- Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ 
 - Publica – https://apublica.org/checagem/ [under implementation]
 
 
@@ -14,12 +14,10 @@
 
 - "Claim"					: Textual claim which is being verified
 - "Credibility"			: true/false
-- "URL"					: URL of the corresponding snopes page
-- "Origins"				: Description of how the claim was originated. Corresponds to the "Origin" section in the Snopes - - article
-- "Example"				: Example of how Snopes spotted the claim. Corresponds to the "Example" section in the Snopes -  -- article
-- "Description"			: Description provided in the Snopes article about why the claim is true or false
-- "Date"	: Date when the Snopes article was published
-- "Referred Links"		: References used for verifying the claim. Corresponds to "Sources" section in the Snopes article
+- "URL"					: URL of the corresponding source page
+- "body"			: Description provided by the source article about why the claim is true or false
+- "Date"	: Date when the article was published
+- "Referred Links"		: References used for verifying the claim.
 - "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
 
 ## Examples of python usage
