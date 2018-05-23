@@ -67,7 +67,7 @@ def get_all_claims(criteria):
 
 			#body
 			body=soup.find("article")
-			claim_.setBody(body.get_text().replace("\n",""))
+			claim_.setBody(body.get_text().replace("\n","").replace("TwitterFacebookE-mailWhatsApp",""))
 
 			#related links
 			divTag = soup.find("article").find("hr")
@@ -83,6 +83,7 @@ def get_all_claims(criteria):
 			#conclusin
 			if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").find("figcaption")):
 				claim_.setConclusion(claim_element.find_previous_sibling("figure").find("figcaption").get_text())
+
 
 			claims.append(claim_.getDict())
 

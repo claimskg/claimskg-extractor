@@ -46,10 +46,6 @@ def get_all_claims(criteria):
 		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
 		
-		#claim
-		claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
-		if claim :
-		    claim_.setClaim(claim.find_previous('strong').get_text())
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})
@@ -59,6 +55,14 @@ def get_all_claims(criteria):
 		#title
 		title=soup.find("h2", {"class": "bloco-title"})
 		claim_.setTitle(title.text)
+
+
+		#claim
+		claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
+		if claim and claim.find_previous('strong'):
+			claim_.setClaim(claim.find_previous('strong').get_text())
+		else:
+			claim_.setClaim(claim_.title)
 
 		#date
 		date=soup.find("div", {"class": "bloco-meta"})
