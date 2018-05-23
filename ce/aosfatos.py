@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 import urllib2
 from bs4 import BeautifulSoup
@@ -44,15 +45,14 @@ def get_all_claims(criteria):
 		url_complete="https://aosfatos.org/"+str(url)
 
 		#print url_complete
-		page = urllib2.urlopen(url_complete).read()
+		page = urllib2.urlopen(url_complete).read().decode('utf-8', 'ignore')
 		soup = BeautifulSoup(page, "lxml")
-		soup.prettify()
+		soup.prettify("utf-8")
 
 		for claim_element in soup.findAll("blockquote"):
 			claim_ =  claim_obj.Claim()
 			claim_.setUrl(url_complete)
 			claim_.setSource("aosfatos")
-
 
 			#date
 			date_ = soup.find('p', {"class": "publish_date"})
@@ -63,7 +63,6 @@ def get_all_claims(criteria):
 			#title
 			title=soup.findAll("h1")
 			claim_.setTitle(title[1].text)
-
 
 			#body
 			body=soup.find("article")
@@ -78,12 +77,12 @@ def get_all_claims(criteria):
 			
 
 			#claim
-			claim_.setClaim(str(claim_element.get_text().encode('utf-8')).replace("\n",""))
-			#record['claim']="dddd"
-			#conclusin
-			if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").find("figcaption")):
-				claim_.setConclusion(claim_element.find_previous_sibling("figure").find("figcaption").get_text())
-
+			claim_.setClaim(claim_element.get_text().replace("\n",""))
+			if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").findAll("figcaption")):
+				claim_.setConclusion(str(claim_element.find_previous_sibling("figure").findAll("figcaption")[-1:][0].get_text().decode('utf-8', 'ignore')))
+			#print claim_.claim.decode("utf-8") + " ====> "
+			#print claim_.conclusion.decode("utf-8")
+			#print "-->"+ str(claim_.conclusion)
 
 			claims.append(claim_.getDict())
 

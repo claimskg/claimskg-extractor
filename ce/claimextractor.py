@@ -23,7 +23,7 @@ def get_claims(criteria):
 			func = getattr(module, "get_all_claims")
 			pdfs.append( func(criteria))
 
-		pd.concat(pdfs).to_csv(criteria.output, encoding="utf8")
+		pd.concat(pdfs).to_csv(criteria.output, encoding="utf-8")
 
 
 
