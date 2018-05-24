@@ -1,7 +1,7 @@
 import pandas as pd
 current_websites={
 	"english":["fullfact"],
-	"portuguese":["aosfatos","lupa"] 
+	"portuguese":["aosfatos","lupa","publica"] 
 }
 
 def get_sites():
