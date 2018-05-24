@@ -2,11 +2,11 @@ class Claim:
 	
 	def __init__(self):
 		self.source=""
-		self.claim=""
-		self.body=""
-		self.conclusion=""
+		self.claim=unicode("")
+		self.body=unicode("")
+		self.conclusion=unicode("")
 		self.refered_links=""
-		self.title=""
+		self.title=unicode("")
 		self.date=""
 		self.url=""
 
@@ -16,15 +16,15 @@ class Claim:
 		return self
 	
 	def setClaim(self, str_):
-		self.claim = str_
+		self.claim = unicode(str_)
 		return self
 		
 	def setBody(self, str_):
-		self.body = str_
+		self.body = unicode(str_)
 		return self
 
 	def setConclusion(self, str_):
-		self.conclusion = str_
+		self.conclusion = unicode(str_)
 		return self
 
 	def setRefered_links(self, str_):
@@ -32,7 +32,7 @@ class Claim:
 		return self
 
 	def setTitle(self, str_):
-		self.title = str_
+		self.title = unicode(str_)
 		return self
 
 	def setDate(self, str_):
@@ -40,7 +40,7 @@ class Claim:
 		return self
 
 	def setUrl(self, str_):
-		self.url = str_
+		self.url = unicode(str_)
 		return self
 
 	def getDict(self):

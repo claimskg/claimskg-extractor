@@ -77,9 +77,9 @@ def get_all_claims(criteria):
 			
 
 			#claim
-			claim_.setClaim(claim_element.get_text().replace("\n",""))
+			claim_.setClaim(claim_element.get_text())
 			if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").findAll("figcaption")):
-				claim_.setConclusion(str(claim_element.find_previous_sibling("figure").findAll("figcaption")[-1:][0].get_text().decode('utf-8', 'ignore')))
+				claim_.setConclusion(claim_element.find_previous_sibling("figure").findAll("figcaption")[-1:][0].get_text())
 			#print claim_.claim.decode("utf-8") + " ====> "
 			#print claim_.conclusion.decode("utf-8")
 			#print "-->"+ str(claim_.conclusion)
