@@ -16,7 +16,7 @@ We have extracted 3086 claims from these websites:
 
 
 
-## features
+## Features Extracted
 
 - "Claim"					: Textual claim which is being verified
 - "Credibility"			: true/false
@@ -26,7 +26,9 @@ We have extracted 3086 claims from these websites:
 - "Referred Links"		: References used for verifying the claim.
 - "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
 
-## Examples of python usage
+## Examples of usage
+
+### Python
 - Get claims by website
 ``` python
 	import ce.claimextractor as ce
@@ -35,7 +37,7 @@ We have extracted 3086 claims from these websites:
   
 ```    
 
-## Examples of command-line usage
+### Command-line usage
 Export claims to a csv file named "output_got.csv".
 - Get help use
 ```
