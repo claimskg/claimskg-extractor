@@ -19,7 +19,10 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
 - fullfact https://fullfact.org/
 - snopes https://www.snopes.com/ [under implementation]
-- polifact http://www.politifact.com/ [under implementation]
+- PolitiFact http://www.politifact.com/ [under implementation]
+- FactCheck.org https://www.factcheck.org/ [under implementation]
+- Hoax-slayer https://www.hoax-slayer.net/ [under implementation]
+- TruthOrFiction https://www.truthorfiction.com/ [under implementation]
 
 We have extracted 3086 claims from these websites.
 
