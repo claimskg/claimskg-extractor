@@ -1,4 +1,6 @@
 ## Fact-Checking
+This is a tool for automatically extract claims from Fact-Checking websites written in English and Portuguese. We are just starting, and there are several features to be developed. So if you want to contribute to a nice project, welcome aboard!
+
 ### English
 - fullfact https://fullfact.org/
 - snopes https://www.snopes.com/ [under implementation]
