@@ -42,6 +42,7 @@ def get_all_claims(criteria):
 
             contr = 0
             claims_ = []
+            refered_links = []
             date_ = soup2.find('span', {'class': 'date'}).text
             claim_ = new_claim(f_link, date_)
             stop = False
@@ -49,6 +50,7 @@ def get_all_claims(criteria):
                 if c.name is None: continue
                 if c.name == 'hr':
                     if stop:
+                        claim_.setRefered_links(refered_links)
                         claims.append(claim_.getDict())
                         claim_ = new_claim(f_link, date_)
                         stop = False
@@ -64,11 +66,19 @@ def get_all_claims(criteria):
                     continue
                 if contr == 2:
                     claim_.setConclusion(c.img['alt'])
+                    claim_.setBody(claim_.body + "\n" + c.text)
+                    for l in c.findAll('a', href=True):
+                        refered_links.append(l['href'])
                     contr = 3
                     continue
                 if contr == 3:
-                    claim_.setBody(claim_.body+"\n" + c.text)
+                    for l in c.findAll('a', href=True):
+                        refered_links.append(l['href'])
+                    claim_.setBody(claim_.body + "\n" + c.text)
+                    for l in c.findAll('a', href=True):
+                        refered_links.append(l['href'])
             if stop:
+                claim_.setRefered_links(refered_links)
                 claims.append(claim_.getDict())
 
     pdf = pd.DataFrame(claims)
