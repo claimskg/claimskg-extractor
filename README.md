@@ -63,3 +63,15 @@ Export claims to a csv file named "output_got.csv".
 ```
     python Exporter.py --language portuguese
 ``` 
+## How to cite
+Bibtex - https://dl.acm.org/downformats.cfm?id=3201083&parent_id=3201064&expformat=bibtex
+```
+@inproceedings{woloszyn2018distrustrank,
+  title={DistrustRank: Spotting False News Domains},
+  author={Woloszyn, Vinicius and Nejdl, Wolfgang},
+  booktitle={Proceedings of the 10th ACM Conference on Web Science},
+  pages={221--228},
+  year={2018},
+  organization={ACM}
+}
+```
