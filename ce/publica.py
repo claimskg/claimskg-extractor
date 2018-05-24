@@ -1,6 +1,7 @@
 import pandas as pd
 from bs4 import BeautifulSoup
 import urllib2
+import Claim as claim_obj
 
 
 ignore_urls = ['https://apublica.org/2017/07/truco-7-fatos-sobre-a-reforma-trabalhista/',
@@ -19,6 +20,8 @@ def get_all_claims(criteria):
 
     # For each page
     for page_i in range(number_of_pages):
+        if (criteria.maxClaims > 0 and len(claims)>= criteria.maxClaims):
+            break
         page_i += 1
         print('Page ' + str(page_i) + '|' + str(number_of_pages))
         soup = get_soup('https://apublica.org/checagem/page/' + str(page_i) + '/')
@@ -27,6 +30,8 @@ def get_all_claims(criteria):
         for f_link in fact_links:
             if f_link in ignore_urls:
                 continue
+            if (criteria.maxClaims > 0 and len(claims)>= criteria.maxClaims):
+                break
             print(f_link)
             soup2 = get_soup(f_link)
 
@@ -36,34 +41,43 @@ def get_all_claims(criteria):
 
             contr = 0
             claims_ = []
-            claim_ = {'body': ""}
+            #claim_ = {'body': ""}
+            claim_ =  claim_obj.Claim()
+            claim_.setUrl(f_link)
+            claim_.setSource("publica")
+
             stop = False
             for c in soup2.find('div', {'class', 'post-contents'}).contents:
                 if c.name is None: continue
                 #print(c.name)
                 if c.name == 'hr':
                     if stop:
-                        claims_.append(claim_)
-                        claim_ = {'body': ""}
+                        #claims_.append(claim_)
+                        #claim_ = {'body': ""}
+                        claim_.setBody("")
                         stop = False
                     contr = 1
                     continue
                 if contr == 1:
-                    claim_['claim'] = c.text
+                    claim_.setClaim(c.text)
+                    #claim_['claim'] = c.text
                     contr = 2
                     if c.find('img'):
-                        claim_['credibility'] = c.img['alt']
+                        #claim_['credibility'] = c.img['alt']
+                        claim_.setConclusion(c.img['alt'])
                         contr = 3
                     stop = True
                     continue
                 if contr == 2:
-                    claim_['credibility'] = c.img['alt']
+                    #claim_['credibility'] = c.img['alt']
+                    claim_.setConclusion(c.img['alt'])
                     contr = 3
                     continue
                 if contr == 3:
-                    claim_['body'] += "\n" + c.text
+                    claim_.setBody(claim_.body+"\n" + c.text)
+                    #claim_['body'] += "\n" + c.text
             if stop:
-                claims_.append(claim_)
+                claims.append(claim_.getDict())
 
     pdf = pd.DataFrame(claims)
     return pdf
