@@ -66,7 +66,7 @@ def get_all_claims(criteria):
 
 		#date
 		date=soup.find("div", {"class": "bloco-meta"})
-		claim_.setDate(dateparser.parse(date.text.split("|")[0]).strftime("%Y-%m-%d"))
+		claim_.setDate(dateparser.parse(date.text.split("|")[0], settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
 
 		#related links
 		divTag = soup.find("div", {"class": "post-inner"})

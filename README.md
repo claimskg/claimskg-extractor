@@ -5,7 +5,8 @@
 ### Portuguese
 - Lupa – http://piaui.folha.uol.com.br/lupa/ 
 - Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ 
-- Publica – https://apublica.org/checagem/ [under implementation]
+- Publica – https://apublica.org/checagem/ 
+- G1 - https://g1.globo.com/e-ou-nao-e/
 
 
 
