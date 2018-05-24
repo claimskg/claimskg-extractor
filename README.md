@@ -1,18 +1,27 @@
 ## Fact-Checking
-This is a tool for automatically extract claims from Fact-Checking websites written in English and Portuguese. We are just starting, and there are several features to be developed. So if you want to contribute to a nice project, welcome aboard!
+One valuable instrument to verify the truthfulness of a claim is Fact-checking. Usually, Fact-checking is a non-profit organization that provides an independent investigation about questionable facts. Besides providing free tools, information, and advice, it is the rich knowledge base that can be used to train computational models to detect this type of fake content automatically. 
+
+
+We are just starting, and there are several features to be developed. So if you want to contribute to a nice project, welcome aboard!
 
 ### Portuguese
-Currently, we have extracted 1463 claims from these websites:
+Although the Fact-checking is not new (for instance, snopes.com has been active for more than 10 years), unfortunately, these initiatives are still young and scared for Portuguese. Some of prominent Brazilian Fact-checking are:
+
+
 - Lupa – http://piaui.folha.uol.com.br/lupa/ 
 - Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ 
 - Publica – https://apublica.org/checagem/ 
 - G1 - https://g1.globo.com/e-ou-nao-e/
 
+Currently, we have extracted 1463 claims from these Brazilian fact-checking.
+
 ### English
-We have extracted 3086 claims from these websites:
+
 - fullfact https://fullfact.org/
 - snopes https://www.snopes.com/ [under implementation]
 - polifact http://www.politifact.com/ [under implementation]
+
+We have extracted 3086 claims from these websites.
 
 
 
