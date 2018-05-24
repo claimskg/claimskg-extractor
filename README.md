@@ -1,7 +1,8 @@
 ## Fact-Checking
 ### English
-- fullfact.org 
-- snopes.com [under implementation]
+- fullfact https://fullfact.org/
+- snopes https://www.snopes.com/ [under implementation]
+- polifact http://www.politifact.com/ [under implementation]
 ### Portuguese
 - Lupa – http://piaui.folha.uol.com.br/lupa/ 
 - Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/ 
