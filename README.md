@@ -38,6 +38,12 @@ We have extracted 3086 claims from these websites.
 - "Referred Links"		: References used for verifying the claim.
 - "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
 
+## Prerequisites
+Expected package dependencies are listed in the "requirements.txt" file for PIP, you need to run the following command to get dependencies:
+```
+pip install -r requirements.txt
+```
+
 ## Examples of usage
 
 ### Python
