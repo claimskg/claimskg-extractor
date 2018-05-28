@@ -54,7 +54,7 @@ pip install -r requirements.txt
 
 ### Command-line usage
 Export claims to a csv file named "output_got.csv".
-- Get help use
+- Get help use  [under implementation]
 ```
     python Exporter.py -h
 ``` 
