@@ -35,16 +35,13 @@ def get_all_claims(criteria):
                 break
             print(f_link)
             soup2 = get_soup(f_link)
-
-            # claims_ = [claim.text for claim in soup2.find_all('strong') if u'\u201c' in claim.text]
-            # credibilities_ = [l['alt'] for l in soup2.find_all('img', {'class': 'alignleft'}) if '-400.jpg' in l['src']]
-            # url_ = f_link
+            title_ = soup2.find('title').text
+            tags_ = soup2.find('div', {'class', 'tags'}).text.split()
 
             contr = 0
-            claims_ = []
             refered_links = []
             date_ = soup2.find('span', {'class': 'date'}).text
-            claim_ = new_claim(f_link, date_)
+            claim_ = new_claim(f_link, date_, title_, tags_)
             stop = False
             for c in soup2.find('div', {'class', 'post-contents'}).contents:
                 if c.name is None: continue
@@ -52,7 +49,7 @@ def get_all_claims(criteria):
                     if stop:
                         claim_.setRefered_links(refered_links)
                         claims.append(claim_.getDict())
-                        claim_ = new_claim(f_link, date_)
+                        claim_ = new_claim(f_link, date_, title_, tags_)
                         stop = False
                     contr = 1
                     continue
@@ -80,7 +77,7 @@ def get_all_claims(criteria):
             if stop:
                 claim_.setRefered_links(refered_links)
                 claims.append(claim_.getDict())
-
+    print('Number of claims: '+str(len(claims)))
     pdf = pd.DataFrame(claims)
     return pdf
 
@@ -92,9 +89,11 @@ def get_soup(url):
     return BeautifulSoup(page, 'lxml')
 
 
-def new_claim(f_link, date):
+def new_claim(f_link, date, title, tags):
     claim_ = claim_obj.Claim()
     claim_.setUrl(f_link)
+    claim_.setTitle(title)
+    claim_.setTags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
     claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))

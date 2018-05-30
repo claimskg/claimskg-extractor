@@ -19,10 +19,7 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
 - Fullfact https://fullfact.org/
 - Snopes https://www.snopes.com/ [under implementation]
-- PolitiFact http://www.politifact.com/ [under implementation]
-- FactCheck https://www.factcheck.org/ [under implementation]
-- Hoax-slayer https://www.hoax-slayer.net/ [under implementation]
-- TruthOrFiction https://www.truthorfiction.com/ [under implementation]
+
 
 We have extracted 3086 claims from these websites.
 
@@ -57,7 +54,7 @@ pip install -r requirements.txt
 
 ### Command-line usage
 Export claims to a csv file named "output_got.csv".
-- Get help use
+- Get help use  [under implementation]
 ```
     python Exporter.py -h
 ``` 
