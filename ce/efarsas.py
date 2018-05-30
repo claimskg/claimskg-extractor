@@ -12,7 +12,7 @@ def get_all_claims(criteria):
 
     soup = get_soup('http://www.e-farsas.com/')
 
-    # Get the number of pages
+    # Number of pages
     number_of_pages = 136
 
     # For each page
@@ -32,48 +32,16 @@ def get_all_claims(criteria):
             print(f_link)
             soup2 = get_soup(f_link)
             title_ = soup2.find('h1').text
-            print(title_)
-            #tags_ = soup2.find('div', {'class', 'tags'}).text.split()
 
-            #contr = 0
-            #refered_links = []
-            #date_ = soup2.find('span', {'class': 'date'}).text
-            #claim_ = new_claim(f_link, date_, title_, tags_)
-            #stop = False
-            #for c in soup2.find('div', {'class', 'post-contents'}).contents:
-            #    if c.name is None: continue
-            #    if c.name == 'hr':
-            #        if stop:
-            #            claim_.setRefered_links(refered_links)
-            #            claims.append(claim_.getDict())
-            #            claim_ = new_claim(f_link, date_, title_, tags_)
-            #            stop = False
-            #        contr = 1
-            #        continue
-            #    if contr == 1:
-            #        claim_.setClaim(c.text)
-            #        contr = 2
-            #        if c.find('img'):
-            #            claim_.setConclusion(c.img['alt'])
-            #            contr = 3
-            #        stop = True
-            #        continue
-            #    if contr == 2:
-            #        claim_.setConclusion(c.img['alt'])
-            #        claim_.setBody(claim_.body + "\n" + c.text)
-            #        for l in c.findAll('a', href=True):
-            #            refered_links.append(l['href'])
-            #        contr = 3
-            #        continue
-            #    if contr == 3:
-            #        for l in c.findAll('a', href=True):
-            #            refered_links.append(l['href'])
-            #        claim_.setBody(claim_.body + "\n" + c.text)
-            #        for l in c.findAll('a', href=True):
-            #            refered_links.append(l['href'])
-            #if stop:
-            #    claim_.setRefered_links(refered_links)
-            #    claims.append(claim_.getDict())
+            tags_ = [t.text for t in soup2.findAll('a', {'rel': 'tag'})]
+
+            date_ = soup2.find('span', {'class': 'post-date'}).text
+            claim_ = new_claim(f_link, date_, title_, tags_)
+            refered_links = [l['href'] for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('a')]
+            claim_.setRefered_links(refered_links)
+            claim_.setClaim(soup2.find('strong').text)
+            claim_.setBody("\n".join([l.text for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('p')]))
+            claims.append(claim_.getDict())
     print('Number of claims: '+str(len(claims)))
     pdf = pd.DataFrame(claims)
     return pdf
@@ -94,6 +62,6 @@ def new_claim(f_link, date, title, tags):
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
     claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
-    claim_.setSource("publica")
+    claim_.setSource("efarsas")
     claim_.setBody("")
     return claim_
