@@ -45,13 +45,13 @@ def get_all_claims(criteria):
 		page = urllib2.urlopen(url_complete).read()
 		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
-		
+
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})
 		if conclusion :
 			claim_.setConclusion(conclusion.get_text())
-		    
+
 		#title
 		title=soup.find("h2", {"class": "bloco-title"})
 		claim_.setTitle(title.text)
@@ -79,8 +79,12 @@ def get_all_claims(criteria):
 		body = soup.find("div", {"class": "post-inner"})
 		claim_.setBody(body.get_text())
 
+		# tags
+		tags_ = [t.text for t in soup.findAll('a', {'rel':'tag'})]
+		claim_.setTags(tags_)
+
 		claims.append(claim_.getDict())
-    
+
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
 	return pdf
