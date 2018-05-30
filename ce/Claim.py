@@ -1,5 +1,5 @@
 class Claim:
-	
+
 	def __init__(self):
 		self.source=""
 		self.claim=unicode("")
@@ -9,16 +9,17 @@ class Claim:
 		self.title=unicode("")
 		self.date=""
 		self.url=""
+		self.tags=""
 
-		
+
 	def setSource(self, str_):
 		self.source = str_
 		return self
-	
+
 	def setClaim(self, str_):
 		self.claim = unicode(str_)
 		return self
-		
+
 	def setBody(self, str_):
 		self.body = unicode(str_)
 		return self
@@ -43,6 +44,9 @@ class Claim:
 		self.url = unicode(str_)
 		return self
 
+	def setTags(self, str_):
+		self.tags = str_
+
 	def getDict(self):
 		dict_={}
 		dict_['source']=self.source
@@ -53,5 +57,5 @@ class Claim:
 		dict_['title']=self.title
 		dict_['date']=self.date
 		dict_['url']=self.url
+		dict_['tags']=self.tags
 		return dict_
-
