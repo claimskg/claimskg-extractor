@@ -1,7 +1,7 @@
 import pandas as pd
 current_websites={
 	"english":["fullfact"],
-	"portuguese":["aosfatos","lupa","publica","g1"] 
+	"portuguese":["aosfatos","lupa","publica","g1","efarsas"] 
 }
 
 def get_sites():
@@ -24,7 +24,3 @@ def get_claims(criteria):
 			pdfs.append( func(criteria))
 
 		pd.concat(pdfs).to_csv(criteria.output, encoding="utf-8")
-
-
-
-
