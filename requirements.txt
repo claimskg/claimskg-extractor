@@ -1,0 +1,3 @@
+pandas==0.20.3
+dateparser==0.7.0
+beautifulsoup4==4.6.0

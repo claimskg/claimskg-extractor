@@ -35,7 +35,7 @@ def get_all_claims(criteria):
 	index=0
 	# visiting each article's dictionary and extract the content.
 	for url in urls_.keys():
-		print str(index) + "# extracting "+str(url)
+		print str(index) + "/" + str(len(urls_))+ " extracting "+str(url)
 		index+=1
 		record={}
 		record['source']="fullfact"

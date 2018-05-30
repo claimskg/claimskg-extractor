@@ -52,8 +52,9 @@ def get_all_claims(criteria):
 		claim_.setUrl(url_complete)
 		claim_.setSource("g1")
 
-		#title
-		if (soup.find("h1",{"class":"content-head__title"})):
+		try:
+			#title
+			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
 			title=soup.find("h1",{"class":"content-head__title"})
 			claim_.setTitle(title.text)
 
@@ -80,9 +81,10 @@ def get_all_claims(criteria):
 
 			#claim
 			claim_conclusion=soup.find("h1",{"class":"content-head__title"}).get_text()
-			if (claim_conclusion.split("?")):
-				claim_.setClaim(claim_conclusion.split("?")[0])
-				claim_.setConclusion(claim_conclusion.split("?")[1])
+			#claim_.setClaim(claim_conclusion)
+			#if (len(claim_conclusion.split("?"))>1):
+			claim_.setClaim(claim_conclusion.split("?")[0])
+			claim_.setConclusion(claim_conclusion.split("?")[1])
 			# if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").findAll("figcaption")):
 			# 	claim_.setConclusion(claim_element.find_previous_sibling("figure").findAll("figcaption")[-1:][0].get_text())
 			#print claim_.claim.decode("utf-8") + " ====> "
@@ -90,6 +92,8 @@ def get_all_claims(criteria):
 			#print "-->"+ str(claim_.conclusion)
 
 			claims.append(claim_.getDict())
+		except:
+			print "Error ->" + str(url_complete)
 
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
