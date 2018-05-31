@@ -20,6 +20,7 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
 - Fullfact https://fullfact.org/
 - Snopes https://www.snopes.com/ [under implementation]
+
 We have extracted 3086 claims from these websites.
 
 ### German
