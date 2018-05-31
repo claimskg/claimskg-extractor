@@ -26,6 +26,7 @@ We have extracted 3086 claims from these websites.
 ### German
 
 - Mimika https://www.mimikama.at/
+
 We extracted 4990 claims from german websites.
 
 
