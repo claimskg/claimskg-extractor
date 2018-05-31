@@ -40,53 +40,57 @@ def get_all_claims(criteria):
 	index=0
 	# visiting each article's dictionary and extract the content.
 	for url in urls_.keys():
-		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
-		index+=1
-		claim_ =  claim_obj.Claim()
-		claim_.setSource("mimikama")
-		url_complete=url
-		claim_.setUrl(url_complete)
-		page = urllib2.urlopen(url_complete).read()
-		soup = BeautifulSoup(page,"lxml")
-		soup.prettify()
-		
+		try:
+			print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
+			index+=1
+			claim_ =  claim_obj.Claim()
+			claim_.setSource("mimikama")
+			url_complete=url
+			claim_.setUrl(url_complete)
+			page = urllib2.urlopen(url_complete, timeout=5).read()
+			soup = BeautifulSoup(page,"lxml")
+			soup.prettify()
+			
 
-		#conclusin
-		conclusion=soup.find('div', {"class": "td-post-content"}).find('h2')
-		if conclusion :
-			claim_.setConclusion(conclusion.get_text())
+			#conclusin
+			# conclusion=soup.find('div', {"class": "td-post-content"}).find('h2')
+			# if conclusion :
+			# 	claim_.setConclusion(conclusion.get_text())
 
-		    
-		#title
-		title=soup.find("h1", {"class": "entry-title"})
-		claim_.setTitle(title.text)
+			    
+			#title
+			title=soup.find("h1", {"class": "entry-title"})
+			claim_.setTitle(title.text)
 
 
-		#claim
-		#claim = soup.find('div', {"class": "td-post-content"}).find('h2')
-		#if claim and claim.find_previous('strong'):
-		#	claim_.setClaim(claim.find_previous('strong').get_text())
-		#else:
-		claim_.setClaim(claim_.title)
+			#claim
+			#claim = soup.find('div', {"class": "td-post-content"}).find('h2')
+			#if claim and claim.find_previous('strong'):
+			#	claim_.setClaim(claim.find_previous('strong').get_text())
+			#else:
+			claim_.setClaim(claim_.title)
 
-		#date
-		date=soup.find("time", {"class": "entry-date updated td-module-date"})
-		#print date
-		
-		print (search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
-		claim_.setDate(search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
+			#date
+			date=soup.find("time", {"class": "entry-date updated td-module-date"})
+			#print date
+			
+			#print (search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
+			claim_.setDate(search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
 
-		#related links
-		divTag = soup.find("div", {"class": "td-post-content"})
-		related_links=[]
-		for link in divTag.findAll('a', href=True):
-		    related_links.append(link['href'])
-		claim_.setRefered_links(related_links)
+			#related links
+			divTag = soup.find("div", {"class": "td-post-content"})
+			related_links=[]
+			for link in divTag.findAll('a', href=True):
+			    related_links.append(link['href'])
+			claim_.setRefered_links(related_links)
 
-		body = soup.find("div", {"class": "td-post-content"})
-		claim_.setBody(body.get_text())
+			body = soup.find("div", {"class": "td-post-content"})
+			claim_.setBody(body.get_text())
 
-		claims.append(claim_.getDict())
+			claims.append(claim_.getDict())
+		except:
+			print "Erro =>"+ url
+
     
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)

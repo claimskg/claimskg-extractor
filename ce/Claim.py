@@ -51,7 +51,7 @@ class Claim:
 		dict_={}
 		dict_['source']=self.source
 		dict_['claim']=self.claim
-		dict_['body']=self.body
+		dict_['body']=self.body.replace("\n","")
 		dict_['conclusion']=self.conclusion
 		dict_['refered_links']=self.refered_links
 		dict_['title']=self.title
