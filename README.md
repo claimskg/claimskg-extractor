@@ -20,14 +20,12 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
 - Fullfact https://fullfact.org/
 - Snopes https://www.snopes.com/ [under implementation]
+We have extracted 3086 claims from these websites.
 
 ### German
 
 - Mimika https://www.mimikama.at/
-
-
-
-We have extracted 3086 claims from these websites.
+We extracted 4990 claims from german websites.
 
 
 
