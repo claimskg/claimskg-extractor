@@ -6,6 +6,8 @@ class Criteria:
 		self.output = "output.csv"
 		self.language = "english"
 		self.website=""
+		self.until=None
+		self.since=None
 		
 	def setSince(self, since):
 		self.since = since

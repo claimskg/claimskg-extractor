@@ -13,7 +13,7 @@ def get_claims(criteria):
 		module = __import__(criteria.website)
 		func = getattr(module, "get_all_claims")
 		pdf = func(criteria)
-		pdf.to_csv(criteria.output, encoding="utf8")
+		#pdf.to_csv(criteria.output, encoding="utf8")
 
 	else:
 		pdfs=[]
@@ -22,5 +22,13 @@ def get_claims(criteria):
 			module = __import__(website)
 			func = getattr(module, "get_all_claims")
 			pdfs.append( func(criteria))
+		pdf = pd.concat(pdfs)
+	pdf['date'] = pd.to_datetime(pdf['date'], format='%Y-%m-%d')
 
-		pd.concat(pdfs).to_csv(criteria.output, encoding="utf-8")
+	if (criteria.since):
+		pdf = pdf[pdf['date']>=criteria.since]
+
+	if (criteria.until):
+		pdf = pdf[pdf['date']<=criteria.until]
+
+	pdf.to_csv(criteria.output, encoding="utf-8")
