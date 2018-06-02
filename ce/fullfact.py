@@ -2,6 +2,8 @@ import pandas as pd
 import urllib2
 from bs4 import BeautifulSoup
 import dateparser
+import Claim as claim_obj
+
 
 def get_all_claims(criteria):
 
@@ -37,20 +39,13 @@ def get_all_claims(criteria):
 	for url in urls_.keys():
 		print str(index) + "/" + str(len(urls_))+ " extracting "+str(url)
 		index+=1
-		record={}
-		record['source']="fullfact"
-		record['claim']=""
-		record['body']=""
-		record['conclusion']=""
-		record['refered_links']=""
-		record['title']=""
-		record['date']=""
-		record['url']=""
+		claim_ =  claim_obj.Claim()
+		claim_.setSource("fullfact")
 	    
 
 
 		url_complete="http://fullfact.org"+url
-		record['url']=url_complete
+		claim_.setUrl(url_complete)
 		page = urllib2.urlopen(url_complete).read()
 		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
@@ -60,40 +55,41 @@ def get_all_claims(criteria):
 		#claim
 		claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
 		if claim :
-		    record['claim']=claim.get_text().replace("\nClaim\n","")
+			claim_.setClaim(claim.get_text().replace("\nClaim\n",""))
+
 
 
 		#conclusin
 		conclusion = soup.find('div', {"class": "col-xs-12 col-sm-6 col-right"})
 		if conclusion :
-		    record['conclusion']=conclusion.get_text().replace("\nConclusion\n","")
+		    claim_.setConclusion(conclusion.get_text().replace("\nConclusion\n",""))
 		    
 		    
 		#title
 		title=soup.find("div", {"class": "container main-container"}).find('h1')
-		record['title']=title.text
+		claim_.setTitle(title.text)
 
 
 		#date
 		date=soup.find("p", {"class": "hidden-xs hidden-sm date updated"})
-		record['date']=dateparser.parse(date.get_text().replace("Published:","")).strftime("%Y-%m-%d")
+		claim_.setDate(dateparser.parse(date.get_text().replace("Published:","")).strftime("%Y-%m-%d"))
 
 		
 		#body
 		body = soup.find("div", {"class": "article-post-content"})
-		record['body']=body.get_text()
+		claim_.setBody(body.get_text())
 
 
 		#related links
 		divTag = soup.find("div", {"class": "row"})
 		related_links=[]
 		for link in divTag.findAll('a', href=True):
-		    related_links.append(link['href'])
-		record['refered_links']=related_links
+			related_links.append(link['href'])
+		claim_.setRefered_links(related_links)
 
 
 
-		claims.append(record)
+		claims.append(claim_.getDict())
     
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
