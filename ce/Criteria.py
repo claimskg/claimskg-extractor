@@ -8,6 +8,7 @@ class Criteria:
 		self.website=""
 		self.until=None
 		self.since=None
+		self.html=False
 		
 	def setSince(self, since):
 		self.since = since

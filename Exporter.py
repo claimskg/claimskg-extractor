@@ -30,7 +30,7 @@ def main(argv):
 		return
 
 	try:
-		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output=","language="))
+		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output=","language=","html="))
 
 		
 		
@@ -52,6 +52,8 @@ def main(argv):
 
 			elif opt == '--output':
 				criteria.output = arg
+			elif opt == '--html':
+				criteria.html = True
 
 	except:
 		print('Arguments parser error, try -h')

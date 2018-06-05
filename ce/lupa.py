@@ -46,6 +46,9 @@ def get_all_claims(criteria):
 		soup = BeautifulSoup(page,"lxml")
 		soup.prettify()
 
+		if (criteria.html):
+			claim_.setHtml(soup.prettify())
+
 
 		#conclusin
 		conclusion=soup.find('div', {"class": "etiqueta"})

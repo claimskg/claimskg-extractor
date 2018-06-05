@@ -1,7 +1,8 @@
 import pandas as pd
 current_websites={
 	"english":["fullfact"],
-	"portuguese":["aosfatos","lupa","publica","g1","efarsas"] 
+	"portuguese":["aosfatos","lupa","publica","g1","efarsas"],
+	"german":["mimikama"] 
 }
 
 def get_sites():
@@ -10,9 +11,17 @@ def get_sites():
 
 def get_claims(criteria):
 	if (criteria.website):
-		module = __import__(criteria.website)
-		func = getattr(module, "get_all_claims")
-		pdf = func(criteria)
+		if (criteria.website.split(",")>1):
+			pdfs=[]
+			for web in criteria.website.split(","):
+				module = __import__(web)
+				func = getattr(module, "get_all_claims")
+				pdfs.append( func(criteria))
+			pdf = pd.concat(pdfs)
+		else:
+			module = __import__(criteria.website)
+			func = getattr(module, "get_all_claims")
+			pdf = func(criteria)
 		#pdf.to_csv(criteria.output, encoding="utf8")
 
 	else:

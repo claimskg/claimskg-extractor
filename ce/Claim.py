@@ -10,6 +10,7 @@ class Claim:
 		self.date=""
 		self.url=""
 		self.tags=""
+		self.html=False
 
 
 	def setSource(self, str_):
@@ -47,6 +48,11 @@ class Claim:
 	def setTags(self, str_):
 		self.tags = str_
 
+	def setHtml(self, str_):
+		self.html = str_
+
+	
+
 	def getDict(self):
 		dict_={}
 		dict_['source']=self.source
@@ -58,4 +64,6 @@ class Claim:
 		dict_['date']=self.date
 		dict_['url']=self.url
 		dict_['tags']=self.tags
+		if (self.html):
+			dict_['html']=self.html
 		return dict_
