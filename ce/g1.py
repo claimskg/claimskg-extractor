@@ -52,6 +52,9 @@ def get_all_claims(criteria):
 		claim_.setUrl(url_complete)
 		claim_.setSource("g1")
 
+		if (criteria.html):
+			claim_.setHtml(soup.prettify("utf-8"))
+
 		try:
 			#title
 			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):

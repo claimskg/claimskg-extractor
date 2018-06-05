@@ -37,6 +37,8 @@ def get_all_claims(criteria):
 
             date_ = soup2.find('span', {'class': 'post-date'}).text
             claim_ = new_claim(f_link, date_, title_, tags_)
+            if (criteria.html):
+                claim_.setHtml(soup2.prettify("utf-8"))
             refered_links = [l['href'] for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('a')]
             claim_.setRefered_links(refered_links)
             claim_.setClaim(soup2.find('strong').text)
