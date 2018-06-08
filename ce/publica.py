@@ -44,6 +44,8 @@ def get_all_claims(criteria):
             claim_ = new_claim(f_link, date_, title_, tags_)
             stop = False
             for c in soup2.find('div', {'class', 'post-contents'}).contents:
+                if (criteria.maxClaims > 0 and len(claims)>= criteria.maxClaims):
+                    break
                 if c.name is None: continue
                 if c.name == 'hr':
                     if stop:
@@ -75,6 +77,8 @@ def get_all_claims(criteria):
                     for l in c.findAll('a', href=True):
                         refered_links.append(l['href'])
             if stop:
+                if (criteria.maxClaims > 0 and len(claims) >= criteria.maxClaims):
+                    break
                 claim_.setRefered_links(refered_links)
                 claims.append(claim_.getDict())
     print('Number of claims: '+str(len(claims)))
