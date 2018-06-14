@@ -19,10 +19,10 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 ### English
 
 - Fullfact - https://fullfact.org/
-- Snopes - https://www.snopes.com/ [under implementation]
+- Snopes - https://www.snopes.com/
 - Politifact - http://www.politifact.com/ [under implementation]
 
-We have extracted 3086 claims from these websites.
+We have extracted 9073 claims from these websites.
 
 ### German
 
