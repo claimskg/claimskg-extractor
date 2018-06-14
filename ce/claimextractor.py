@@ -1,6 +1,6 @@
 import pandas as pd
 current_websites={
-	"english":["fullfact"],
+	"english":["fullfact","snopes"],
 	"portuguese":["aosfatos","lupa","publica","g1","efarsas"],
 	"german":["mimikama"] 
 }
