@@ -55,49 +55,49 @@ def get_all_claims(criteria):
 		if (criteria.html):
 			claim_.setHtml(soup.prettify("utf-8"))
 
-		#try:
-		#title
-		#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
-		title=soup.find("h1",{"class":"article-title"})
-		claim_.setTitle(title.text)
+		try:
+			#title
+			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
+			title=soup.find("h1",{"class":"article-title"})
+			claim_.setTitle(title.text)
 
-		#date
+			#date
 
-		date_ = soup.find('meta', {"itemprop": "datePublished"})
-		#print date_["content"]
-		if date_ : 
-			date_str=dateparser.parse(date_["content"].split("T")[0], settings={'DATE_ORDER': 'YMD'}).strftime("%Y-%m-%d")
-			#print date_str
-			claim_.setDate(date_str)
-			#print claim_.date
-
-
-		#body
-		body=soup.find("div",{"class":"article-text-inner"})
-		claim_.setBody(body.get_text())
-
-		#related links
-		divTag = soup.find("div",{"class":"article-text-inner"})
-		related_links=[]
-		for link in divTag.findAll('a', href=True):
-		    related_links.append(link['href'])
-		claim_.setRefered_links(related_links)
-		
+			date_ = soup.find('meta', {"itemprop": "datePublished"})
+			#print date_["content"]
+			if date_ : 
+				date_str=dateparser.parse(date_["content"].split("T")[0], settings={'DATE_ORDER': 'YMD'}).strftime("%Y-%m-%d")
+				#print date_str
+				claim_.setDate(date_str)
+				#print claim_.date
 
 
-		claim_.setClaim(soup.find('meta', {"itemprop": "claimReviewed"})["content"])
-		claim_.setConclusion(soup.find('span', {"itemprop": "alternateName"}).text)
+			#body
+			body=soup.find("div",{"class":"article-text-inner"})
+			claim_.setBody(body.get_text())
 
-		tags=[]
+			#related links
+			divTag = soup.find("div",{"class":"article-text-inner"})
+			related_links=[]
+			for link in divTag.findAll('a', href=True):
+			    related_links.append(link['href'])
+			claim_.setRefered_links(related_links)
+			
 
-		for tag in soup.findAll('meta', {"property":"article:tag"}):
-			#print "achou"
-			tags.append(tag["content"])
-		claim_.setTags(", ".join(tags))
 
-		claims.append(claim_.getDict())
-		#except:
-		#	print "Error ->" + str(url_complete)
+			claim_.setClaim(soup.find('meta', {"itemprop": "claimReviewed"})["content"])
+			claim_.setConclusion(soup.find('span', {"itemprop": "alternateName"}).text)
+
+			tags=[]
+
+			for tag in soup.findAll('meta', {"property":"article:tag"}):
+				#print "achou"
+				tags.append(tag["content"])
+			claim_.setTags(", ".join(tags))
+
+			claims.append(claim_.getDict())
+		except:
+			print "Error ->" + str(url_complete)
 
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
