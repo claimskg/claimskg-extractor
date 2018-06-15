@@ -67,11 +67,19 @@ Export claims to a csv file named "output_got.csv".
 ```
 - Get claims by website
 ```
-    python Exporter.py --website fullfact
+    python Exporter.py --website fullfact,snopes
 ```
 - Get claims by language
 ```
     python Exporter.py --language portuguese
+```
+- limit of number of claims
+```
+    python Exporter.py --language portuguese --maxclaims 30
+```
+- Extract HTML
+```
+    python Exporter.py --language portuguese --html
 ```
 ## How to cite
 Bibtex - https://dl.acm.org/downformats.cfm?id=3201083&parent_id=3201064&expformat=bibtex
