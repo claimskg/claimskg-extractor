@@ -44,18 +44,18 @@ def get_all_claims(criteria):
 		url_complete=str(url)
 
 		#print url_complete
-		page = urllib2.urlopen(url_complete).read().decode('utf-8', 'ignore')
-		soup = BeautifulSoup(page, "lxml")
-		soup.prettify("utf-8")
+		try: 
+			page = urllib2.urlopen(url_complete).read().decode('utf-8', 'ignore')
+			soup = BeautifulSoup(page, "lxml")
+			soup.prettify("utf-8")
 
-		claim_ =  claim_obj.Claim()
-		claim_.setUrl(url_complete)
-		claim_.setSource("snopes")
+			claim_ =  claim_obj.Claim()
+			claim_.setUrl(url_complete)
+			claim_.setSource("snopes")
 
-		if (criteria.html):
-			claim_.setHtml(soup.prettify("utf-8"))
+			if (criteria.html):
+				claim_.setHtml(soup.prettify("utf-8"))
 
-		try:
 			#title
 			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
 			title=soup.find("h1",{"class":"article-title"})
