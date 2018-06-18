@@ -20,7 +20,7 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
 - Fullfact - https://fullfact.org/
 - Snopes - https://www.snopes.com/
-- Politifact - http://www.politifact.com/ [under implementation]
+- Politifact - http://www.politifact.com/
 - FactCheck - http://FactCheck.Org [under implementation]
 - OpenSecrets - http://OpenSecrets.Org [under implementation]
 - TruthOrFiction - http://TruthOrFiction.com [under implementation]
