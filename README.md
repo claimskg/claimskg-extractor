@@ -21,12 +21,12 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 - Fullfact - https://fullfact.org/
 - Snopes - https://www.snopes.com/
 - Politifact - http://www.politifact.com/
+- TruthOrFiction - http://TruthOrFiction.com
 - FactCheck - http://FactCheck.Org [under implementation]
 - OpenSecrets - http://OpenSecrets.Org [under implementation]
-- TruthOrFiction - http://TruthOrFiction.com [under implementation]
 - HoaxSlayer.com - http://HoaxSlayer.com [under implementation]
 
-We have extracted 9073 claims from these websites.
+We have extracted 27494 claims from these websites.
 
 ### German
 
