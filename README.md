@@ -31,9 +31,9 @@ We have extracted 27494 claims from these websites.
 ### German
 
 - Mimika - https://www.mimikama.at/
-- Correctiv - https://correctiv.org/ [under implementation]
+- Correctiv - https://correctiv.org/
 
-We extracted 4990 claims from german websites.
+We extracted 5193 claims from german websites.
 
 
 
