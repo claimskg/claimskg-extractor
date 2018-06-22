@@ -4,6 +4,8 @@ One valuable instrument to verify the truthfulness of a claim is Fact-checking. 
 
 We are just starting, and there are still several things to be done (and issues to be solved). So if you want to contribute to a nice project, welcome aboard!!
 
+* We just use websites considered by the fact checking community as highly reputable https://www.poynter.org/international-fact-checking-network-fact-checkers-code-principles .
+
 ### Portuguese
 Although the Fact-checking is not new (for instance, snopes.com has been active for more than 10 years), unfortunately, these initiatives are still young and scared for Portuguese. Some of prominent Brazilian Fact-checking are:
 
@@ -23,16 +25,15 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 - Politifact - http://www.politifact.com/
 - TruthOrFiction - http://TruthOrFiction.com
 - FactCheck - http://FactCheck.Org [under implementation]
-- OpenSecrets - http://OpenSecrets.Org [under implementation]
-- HoaxSlayer.com - http://HoaxSlayer.com [under implementation]
 
 We have extracted 27494 claims from these websites.
 
 ### German
 
 - Mimika - https://www.mimikama.at/
+- Correctiv - https://correctiv.org/
 
-We extracted 4990 claims from german websites.
+We extracted 5193 claims from german websites.
 
 
 
