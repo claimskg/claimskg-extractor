@@ -25,7 +25,6 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 - Politifact - http://www.politifact.com/
 - TruthOrFiction - http://TruthOrFiction.com
 - Checkyourfact - http://checkyourfact.com
-- FactCheck - http://FactCheck.Org [under implementation]
 
 We have extracted 27594 claims from these websites.
 
