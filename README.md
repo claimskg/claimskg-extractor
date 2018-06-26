@@ -82,6 +82,10 @@ Export claims to a csv file named "output_got.csv".
 ```
     python Exporter.py --language portuguese --maxclaims 30
 ```
+- Extract Entities
+```
+    python Exporter.py --language portuguese --entity
+```
 - Extract HTML
 ```
     python Exporter.py --language portuguese --html
