@@ -24,9 +24,9 @@ Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 - Snopes - https://www.snopes.com/
 - Politifact - http://www.politifact.com/
 - TruthOrFiction - http://TruthOrFiction.com
-- FactCheck - http://FactCheck.Org [under implementation]
+- Checkyourfact - http://checkyourfact.com
 
-We have extracted 27494 claims from these websites.
+We have extracted 27594 claims from these websites.
 
 ### German
 
