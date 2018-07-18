@@ -43,53 +43,55 @@ def get_all_claims(criteria):
 		claim_.setSource("fullfact")
 	    
 
+		try:
+			url_complete="http://fullfact.org"+url
+			claim_.setUrl(url_complete)
+			page = urllib2.urlopen(url_complete).read()
+			soup = BeautifulSoup(page,"lxml")
+			soup.prettify()
 
-		url_complete="http://fullfact.org"+url
-		claim_.setUrl(url_complete)
-		page = urllib2.urlopen(url_complete).read()
-		soup = BeautifulSoup(page,"lxml")
-		soup.prettify()
+			
 
-		
-
-		#claim
-		claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
-		if claim :
-			claim_.setClaim(claim.get_text().replace("\nClaim\n",""))
-
-
-
-		#conclusin
-		conclusion = soup.find('div', {"class": "col-xs-12 col-sm-6 col-right"})
-		if conclusion :
-		    claim_.setConclusion(conclusion.get_text().replace("\nConclusion\n",""))
-		    
-		    
-		#title
-		title=soup.find("div", {"class": "container main-container"}).find('h1')
-		claim_.setTitle(title.text)
-
-
-		#date
-		date=soup.find("p", {"class": "hidden-xs hidden-sm date updated"})
-		claim_.setDate(dateparser.parse(date.get_text().replace("Published:","")).strftime("%Y-%m-%d"))
-
-		
-		#body
-		body = soup.find("div", {"class": "article-post-content"})
-		claim_.setBody(body.get_text())
-
-
-		#related links
-		divTag = soup.find("div", {"class": "row"})
-		related_links=[]
-		for link in divTag.findAll('a', href=True):
-			related_links.append(link['href'])
-		claim_.setRefered_links(related_links)
+			#claim
+			claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
+			if claim :
+				claim_.setClaim(claim.get_text().replace("\nClaim\n",""))
 
 
 
-		claims.append(claim_.getDict())
+			#conclusin
+			conclusion = soup.find('div', {"class": "col-xs-12 col-sm-6 col-right"})
+			if conclusion :
+			    claim_.setConclusion(conclusion.get_text().replace("\nConclusion\n",""))
+			    
+			    
+			#title
+			title=soup.find("div", {"class": "container main-container"}).find('h1')
+			claim_.setTitle(title.text)
+
+
+			#date
+			date=soup.find("p", {"class": "hidden-xs hidden-sm date updated"})
+			claim_.setDate(dateparser.parse(date.get_text().replace("Published:","")).strftime("%Y-%m-%d"))
+
+			
+			#body
+			body = soup.find("div", {"class": "article-post-content"})
+			claim_.setBody(body.get_text())
+
+
+			#related links
+			divTag = soup.find("div", {"class": "row"})
+			related_links=[]
+			for link in divTag.findAll('a', href=True):
+				related_links.append(link['href'])
+			claim_.setRefered_links(related_links)
+
+
+
+			claims.append(claim_.getDict())
+		except:
+			print "error=>"+url_complete
     
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)

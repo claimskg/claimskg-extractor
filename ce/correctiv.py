@@ -48,63 +48,62 @@ def get_all_claims(criteria):
 		url_complete=str(url)
 
 		#print url_complete
-		#try: 
-		page = urllib2.urlopen(url_complete).read().decode('utf-8', 'ignore')
-		soup = BeautifulSoup(page, "lxml")
-		soup.prettify("utf-8")
+		try: 
+			page = urllib2.urlopen(url_complete).read().decode('utf-8', 'ignore')
+			soup = BeautifulSoup(page, "lxml")
+			soup.prettify("utf-8")
 
-		claim_ =  claim_obj.Claim()
-		claim_.setUrl(url_complete)
-		claim_.setSource("correctiv")
+			claim_ =  claim_obj.Claim()
+			claim_.setUrl(url_complete)
+			claim_.setSource("correctiv")
 
-		if (criteria.html):
-			claim_.setHtml(soup.prettify("utf-8"))
+			if (criteria.html):
+				claim_.setHtml(soup.prettify("utf-8"))
 
-		#title
-		#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
-		title=soup.find("h1",{"class":"article-header__headline"})
-		claim_.setTitle(title.text.replace("Faktencheck: ","").replace("\n",""))
-
-		#date
-
-		date_ = soup.find('time', {"class": "article-body__publishing-date"})
-		#print date_["content"]
-		if date_ : 
-			date_str=search_dates(date_.text)[0][1].strftime("%Y-%m-%d")
-			#print date_str
-			claim_.setDate(date_str)
-			#print claim_.date
+			#title
+			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
+			title=soup.find("h1",{"class":"article-header__headline"})
+			claim_.setTitle(title.text.replace("Faktencheck:","").replace("\n",""))
 
 
-		#body
-		body=soup.find("div",{"class":"article-body__main"})
-		claim_.setBody(body.get_text())
-
-		#related links
-		divTag = soup.find("div",{"class":"article-body__main"})
-		related_links=[]
-		for link in divTag.findAll('a', href=True):
-		    related_links.append(link['href'])
-		claim_.setRefered_links(related_links)
-		
+			date_ = soup.find('time', {"class": "article-body__publishing-date"})
+			#print date_["content"]
+			if date_ : 
+				date_str=search_dates(date_['title'].split("T")[0])[0][1].strftime("%Y-%m-%d")
+				#print date_str
+				claim_.setDate(date_str)
+				#print claim_.date
 
 
-		claim_.setClaim(claim_.title)
-		conclsion=soup.find('div', {"class": "article-body__claimreview claimreview"})
-		if conclsion:
-			claim_.setConclusion(conclsion.text.replace("Unsere Bewertung: ","").replace("\n",""))
+			#body
+			body=soup.find("div",{"class":"article-body__main"})
+			claim_.setBody(body.get_text())
+
+			#related links
+			divTag = soup.find("div",{"class":"article-body__main"})
+			related_links=[]
+			for link in divTag.findAll('a', href=True):
+			    related_links.append(link['href'])
+			claim_.setRefered_links(related_links)
+			
 
 
-		tags=[]
+			claim_.setClaim(claim_.title)
+			conclsion=soup.find('div', {"class": "article-body__claimreview claimreview"})
+			if conclsion:
+				claim_.setConclusion(conclsion.text.replace("Unsere Bewertung: ","").replace("\n",""))
 
-		for tag in soup.findAll('meta', {"property":"article:tag"}):
-			#print "achou"
-			tags.append(tag["content"])
-		claim_.setTags(", ".join(tags))
 
-		claims.append(claim_.getDict())
-		#except:
-		#	print "Error ->" + str(url_complete)
+			tags=[]
+
+			for tag in soup.findAll('meta', {"property":"article:tag"}):
+				#print "achou"
+				tags.append(tag["content"])
+			claim_.setTags(", ".join(tags))
+
+			claims.append(claim_.getDict())
+		except:
+			print "Error ->" + str(url_complete)
 
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)

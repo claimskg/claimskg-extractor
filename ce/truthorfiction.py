@@ -39,8 +39,9 @@ def get_all_claims(criteria):
 						if (ind_ not in urls_.keys()):
 							if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
 								break
-							urls_[ind_]=type_
-							print "adding "+str(ind_)
+							if (ind_ not in criteria.avoid_url):
+								urls_[ind_]=anchor.get_text()
+								print "adding "+str(ind_)
 					last_page  = links
 				else:
 					print ("break!")
@@ -51,11 +52,12 @@ def get_all_claims(criteria):
 	claims=[]
 	index=0
 	# visiting each article's dictionary and extract the content.
-	for url, conclusion in urls_.iteritems():  
+	for url,title_claim in urls_.iteritems():  
 		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
 		index+=1
 
 		url_complete=str(url)
+		#print 
 
 		#print url_complete
 		try: 
@@ -71,10 +73,8 @@ def get_all_claims(criteria):
 				claim_.setHtml(soup.prettify("utf-8"))
 
 			#title
-			#if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
-			title_claim=soup.find("div",{"class":"inner-post-entry"}).findChildren()[0].text
-			#print title_claim
-			title=title_claim.split("-")[0]
+			#title=title_claim.split("-")[0]
+			title=title_claim[:title_claim.rfind("-")]
 			conclusion=title_claim.split("-")[-1:][0].replace("!","")
 			claim_.setTitle(title)
 
@@ -83,7 +83,7 @@ def get_all_claims(criteria):
 			date_ = soup.find('div', {"class": "post-box-meta-single"}).find("span") 
 			#print date_["content"]
 			if date_ : 
-				date_str=search_dates(date_.text)[0][1].strftime("%Y-%m-%d")
+				date_str=search_dates(date_.text.replace(",",""), settings={'DATE_ORDER': 'MDY'})[0][1].strftime("%Y-%m-%d")
 				#print date_str
 				claim_.setDate(date_str)
 				#print claim_.date
@@ -111,6 +111,9 @@ def get_all_claims(criteria):
 				tag_str=tag.text
 				tags.append(tag_str)
 			claim_.setTags(", ".join(tags))
+
+			if (claim_.conclusion.replace(" ","")=="" or claim_.claim.replace(" ","")==""):
+				raise ValueError('No conclusion or claim')
 
 			claims.append(claim_.getDict())
 		except:

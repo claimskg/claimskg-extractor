@@ -9,6 +9,13 @@ class Criteria:
 		self.until=None
 		self.since=None
 		self.html=False
+		self.entity=False
+		self.input=None
+		self.rdf=None
+		self.avoid_url=[]
+		self.update_db=False
+		self.entity_link=False
+
 		
 	def setSince(self, since):
 		self.since = since

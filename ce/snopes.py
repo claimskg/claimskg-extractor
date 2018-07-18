@@ -25,11 +25,13 @@ def get_all_claims(criteria):
 		links = soup.findAll('a',{"class":"article-link"}, href=True)
 		if len(links) != 0:
 			for anchor in links:
-				if (anchor['href'] not in urls_.keys()):
+				ind_ = anchor['href']
+				if (ind_ not in urls_.keys()):
 					if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
 						break
-					urls_[anchor['href']]=page_number
-					print "adding "+str(anchor['href'])
+					if (ind_ not in criteria.avoid_url):
+						urls_[ind_]=page_number
+						print "adding "+str(ind_)
 		else:
 			print ("break!")
 			break
@@ -76,6 +78,35 @@ def get_all_claims(criteria):
 			body=soup.find("div",{"class":"article-text-inner"})
 			claim_.setBody(body.get_text())
 
+
+			#author
+			author=soup.find("span",{"itemprop":"itemReviewed"})
+			if (author and author.find("span",{"itemprop":"author"})):
+				claim_.setAuthor(author.find("span",{"itemprop":"author"}).find("meta",{"itemprop":"name"})['content'])
+
+			#sameas
+			obj=soup.find("span",{"itemprop":"itemReviewed"})
+			if (obj and obj.find("meta",{"itemprop":"sameAs"})):
+				claim_.setSameAs(obj.find("meta",{"itemprop":"sameAs"})['content'])
+				
+
+			#samdatepublished
+			obj=soup.find("span",{"itemprop":"itemReviewed"})
+			if (obj and obj.find("meta",{"itemprop":"datePublished"})):
+				date_=obj.find("meta",{"itemprop":"datePublished"})['content']
+				if (date_.split("T")>1):
+					claim_.setDatePublished(date_.split("T")[0])
+
+
+			#rating
+			obj=soup.find("span",{"itemprop":"reviewRating"})
+			if (obj):
+				claim_.ratingValue= obj.find("meta",{"itemprop":"ratingValue"})['content']
+				claim_.worstRating= obj.find("meta",{"itemprop":"worstRating"})['content']
+				claim_.bestRating= obj.find("meta",{"itemprop":"bestRating"})['content']
+				claim_.alternateName= obj.find("span",{"itemprop":"alternateName"}).text
+
+
 			#related links
 			divTag = soup.find("div",{"class":"article-text-inner"})
 			related_links=[]
@@ -86,7 +117,7 @@ def get_all_claims(criteria):
 
 
 			claim_.setClaim(soup.find('meta', {"itemprop": "claimReviewed"})["content"])
-			claim_.setConclusion(soup.find('span', {"itemprop": "alternateName"}).text)
+			#claim_.setConclusion(soup.find('span', {"itemprop": "alternateName"}).text)
 
 			tags=[]
 

@@ -28,12 +28,13 @@ def get_all_claims(criteria):
 		links = soup.find('articles').findAll('a', href=True)
 		if len(links) != 0:
 			for anchor in links:
-				url_to_add="http://checkyourfact.com"+str(anchor['href'])
-				if (url_to_add not in urls_.keys()):
+				ind_="http://checkyourfact.com"+str(anchor['href'])
+				if (ind_ not in urls_.keys()):
 					if (criteria.maxClaims > 0 and len(urls_)>= criteria.maxClaims):
 						break
-					urls_[url_to_add]=page_number
-					print "adding "+str(url_to_add)
+					if (ind_ not in criteria.avoid_url):
+						urls_[ind_]=page_number
+						print "adding "+str(ind_)
 		else:
 			print ("break!")
 			break

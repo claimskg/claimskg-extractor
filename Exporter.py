@@ -3,7 +3,7 @@ import sys,getopt,datetime,codecs
 sys.path.append('ce')
 
 import claimextractor as ce
-import Criteria 
+import Criteria
 
 
 
@@ -30,7 +30,7 @@ def main(argv):
 		return
 
 	try:
-		opts, args = getopt.getopt(argv, "", ("website=", "since=", "until=", "maxclaims=", "output=","language=","html="))
+		opts, args = getopt.getopt(argv, "", ("rdf=", "website=", "since=", "until=", "maxclaims=", "input=", "output=","language=","html","entity","entity_link","update-db"))
 
 		
 		
@@ -52,11 +52,31 @@ def main(argv):
 
 			elif opt == '--output':
 				criteria.output = arg
+
 			elif opt == '--html':
 				criteria.html = True
 
+			elif opt == '--entity':
+				criteria.entity = True
+
+			elif opt == '--entity_link':
+				criteria.entity_link = True
+
+			elif opt == '--entity_link':
+				criteria.entity_link = True
+
+			elif opt == '--update-db':
+				criteria.update_db = True
+
+			elif opt == '--input':
+				criteria.input = arg
+
+			elif opt == '--rdf':
+				criteria.rdf = arg
+
 	except:
 		print('Arguments parser error, try -h')
+		exit()
 	
 	ce.get_claims(criteria)
 	print('Done. Output file generated "%s".' % criteria.output)

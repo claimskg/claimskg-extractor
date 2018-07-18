@@ -38,55 +38,58 @@ def get_all_claims(criteria):
 	for url in urls_.keys():
 		print str(index) + "/"+ str(len(urls_.keys()))+ " extracting "+str(url)
 		index+=1
-		claim_ =  claim_obj.Claim()
-		claim_.setSource("lupa")
-		url_complete=url
-		claim_.setUrl(url_complete)
-		page = urllib2.urlopen(url_complete).read()
-		soup = BeautifulSoup(page,"lxml")
-		soup.prettify()
+		try:
+			claim_ =  claim_obj.Claim()
+			claim_.setSource("lupa")
+			url_complete=url
+			claim_.setUrl(url_complete)
+			page = urllib2.urlopen(url_complete).read()
+			soup = BeautifulSoup(page,"lxml")
+			soup.prettify()
 
-		if (criteria.html):
-			claim_.setHtml(soup.prettify())
-
-
-		#conclusin
-		conclusion=soup.find('div', {"class": "etiqueta"})
-		if conclusion :
-			claim_.setConclusion(conclusion.get_text())
-
-		#title
-		title=soup.find("h2", {"class": "bloco-title"})
-		claim_.setTitle(title.text)
+			if (criteria.html):
+				claim_.setHtml(soup.prettify())
 
 
-		#claim
-		claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
-		if claim and claim.find_previous('strong'):
-			claim_.setClaim(claim.find_previous('strong').get_text())
-		else:
-			claim_.setClaim(claim_.title)
+			#conclusin
+			conclusion=soup.find('div', {"class": "etiqueta"})
+			if conclusion :
+				claim_.setConclusion(conclusion.get_text())
 
-		#date
-		date=soup.find("div", {"class": "bloco-meta"})
-		claim_.setDate(dateparser.parse(date.text.split("|")[0], settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
+			#title
+			title=soup.find("h2", {"class": "bloco-title"})
+			claim_.setTitle(title.text)
 
-		#related links
-		divTag = soup.find("div", {"class": "post-inner"})
-		related_links=[]
-		for link in divTag.findAll('a', href=True):
-		    related_links.append(link['href'])
-		claim_.setRefered_links(related_links)
 
-		#related links
-		body = soup.find("div", {"class": "post-inner"})
-		claim_.setBody(body.get_text())
+			#claim
+			claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
+			if claim and claim.find_previous('strong'):
+				claim_.setClaim(claim.find_previous('strong').get_text())
+			else:
+				claim_.setClaim(claim_.title)
 
-		# tags
-		tags_ = [t.text for t in soup.findAll('a', {'rel':'tag'})]
-		claim_.setTags(tags_)
+			#date
+			date=soup.find("div", {"class": "bloco-meta"})
+			claim_.setDate(dateparser.parse(date.text.split("|")[0], settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
 
-		claims.append(claim_.getDict())
+			#related links
+			divTag = soup.find("div", {"class": "post-inner"})
+			related_links=[]
+			for link in divTag.findAll('a', href=True):
+			    related_links.append(link['href'])
+			claim_.setRefered_links(related_links)
+
+			#related links
+			body = soup.find("div", {"class": "post-inner"})
+			claim_.setBody(body.get_text())
+
+			# tags
+			tags_ = [t.text for t in soup.findAll('a', {'rel':'tag'})]
+			claim_.setTags(tags_)
+
+			claims.append(claim_.getDict())
+		except:
+			print "error=>"+str(url_complete)
 
     #creating a pandas dataframe
 	pdf=pd.DataFrame(claims)
