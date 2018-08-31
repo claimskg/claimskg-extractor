@@ -1,3 +1,7 @@
+
+[![DOI](https://zenodo.org/badge/134137682.svg)](https://zenodo.org/badge/latestdoi/134137682)
+
+
 ## Fact-Checking
 One valuable instrument to verify the truthfulness of a claim is Fact-checking. Usually, Fact-checking is a non-profit organization that provides an independent investigation about questionable facts. Besides providing free tools, information, and advice, it is the rich knowledge base that can be used to train computational models to detect this type of fake content automatically.
 
