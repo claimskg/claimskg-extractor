@@ -15,6 +15,7 @@ class Criteria:
 		self.avoid_url=[]
 		self.update_db=False
 		self.entity_link=False
+		self.normalize_credibility=True
 
 		
 	def setSince(self, since):

@@ -14,6 +14,51 @@ cleaner.style = True      # This is True because we want to activate the styles 
 cleaner.page_structure=True
 
 
+## dictiony used to normalize lternateName filed 
+dict_normalized_alternateName={
+
+"africacheck-incorrect":"FALSE",
+"africacheck-mostly-correct":"MIXTURE",
+"africacheck-correct":"TRUE",
+
+"factscan-false":"FALSE",
+"factscan-true":"TRUE",
+
+"checkyourfact-false":"FALSE",
+"checkyourfact-true":"TRUE",
+"checkyourfact-mostly true":"MIXTURE",
+"checkyourfact-true/false":"MIXTURE",
+
+"snopes-false":"FALSE",
+"snopes-mixture":"MIXTURE",
+"snopes-true":"TRUE",
+"snopes-mostly false":"MIXTURE",
+"snopes-mostly true":"MIXTURE",
+"snopes-correct attribution":"TRUE",
+"snopes-scan":"FALSE",
+
+"politifact-pants-fire":"FALSE",
+"politifact-pants on fire":"FALSE",
+"politifact-false":"FALSE",
+"politifact-mostly false":"MIXTURE",
+"politifact-barely true":"MIXTURE",
+"politifact-half true":"MIXTURE",
+"politifact-mostly true":"MIXTURE",
+"politifact-true":"TRUE",
+
+"truthorfiction-fiction":"FALSE",
+"truthorfiction-truth":"TRUE",
+"truthorfiction-truth & fiction":"MIXED",
+"truthorfiction-mostly fiction":"MIXED",
+"truthorfiction-truth & misleading":"MIXED",
+"truthorfiction-reported as fiction":"FALSE",
+"truthorfiction-mostly truth":"MIXED",
+"truthorfiction-farcical":"FALSE",
+}
+default_label="OTHER"
+
+
+
 count_=0
 current_websites={
 	"english":["snopes","politifact","truthorfiction","checkyourfact","factscan","africacheck"],
@@ -132,6 +177,9 @@ def get_claims(criteria):
 	# 	print "Extracting Entities..."
 	# 	pdf = extract_entities_from_pdf(pdf)
 
+	if (criteria.normalize_credibility):
+		print "Normalizing labels..."
+		pdf = normalize_credibility(pdf)
 
 	if (criteria.entity_link):
 		print "Extracting Entities..."
@@ -147,6 +195,20 @@ def get_claims(criteria):
 		file.write(out)
 
 	pdf.to_csv(criteria.output, encoding="utf-8")
+
+
+
+def get_normalized_alternateName(site,label):
+	key_=site+"-"+str(label).lower()
+	if key_ in dict_normalized_alternateName.keys():
+		return dict_normalized_alternateName[key_]
+	else:
+		return default_label
+
+def normalize_credibility(pdf):
+	pdf["rating_alternateName_normalized"] = pdf.apply(lambda x: get_normalized_alternateName(x['claimReview_author_name'],x['rating_alternateName']),axis=1)
+	return pdf
+
 
 
 def extract_entities_link_from_pdf(pdf):
@@ -235,67 +297,67 @@ def get_entities_link(str_,language):
 	return json.dumps(annotations)
 
 
-def extract_entities_from_pdf(pdf):
-	pdf["extra_entities_claimReview_claimReviewed"] = pdf.apply(lambda x: get_entities(x['claimReview_claimReviewed'],current_websites_invert[x['claimReview_author_name']]),axis=1)
-	pdf["extra_entities_body"] = pdf.apply(lambda x: get_entities(x['extra_body'],current_websites_invert[x['claimReview_author_name']]),axis=1)
+# def extract_entities_from_pdf(pdf):
+# 	pdf["extra_entities_claimReview_claimReviewed"] = pdf.apply(lambda x: get_entities(x['claimReview_claimReviewed'],current_websites_invert[x['claimReview_author_name']]),axis=1)
+# 	pdf["extra_entities_body"] = pdf.apply(lambda x: get_entities(x['extra_body'],current_websites_invert[x['claimReview_author_name']]),axis=1)
 
-	return pdf
+# 	return pdf
 
-def get_entities(str_,language):
-	global spacy_portuguese
-	global spacy_english
-	global spacy_germam
-
-
-	if language == "english":
-		if (spacy_english == None):
-			spacy_english = spacy.load('en')
-		nlp = spacy_english
-	elif language == "german":
-		if (spacy_germam == None):
-			spacy_germam = spacy.load('de')
-		nlp = spacy_germam
-	elif language == "portuguese":
-		if (spacy_portuguese == None):
-			spacy_portuguese = spacy.load('pt')
-		nlp = spacy_portuguese
-	doc = nlp(unicode(str_))
-
-	labels={}
-	for x in doc.ents:
-		if x.label_ in labels.keys():
-			labels[x.label_].append(x.text)
-		else:
-			labels[x.label_]=[x.text]		
-	#print labels
-	return json.dumps(labels)
+# def get_entities(str_,language):
+# 	global spacy_portuguese
+# 	global spacy_english
+# 	global spacy_germam
 
 
-import multiprocessing
-import pandas as pd
-import numpy as np
+# 	if language == "english":
+# 		if (spacy_english == None):
+# 			spacy_english = spacy.load('en')
+# 		nlp = spacy_english
+# 	elif language == "german":
+# 		if (spacy_germam == None):
+# 			spacy_germam = spacy.load('de')
+# 		nlp = spacy_germam
+# 	elif language == "portuguese":
+# 		if (spacy_portuguese == None):
+# 			spacy_portuguese = spacy.load('pt')
+# 		nlp = spacy_portuguese
+# 	doc = nlp(unicode(str_))
 
-#from gevent.pool import Pool
-from multiprocessing import Pool
+# 	labels={}
+# 	for x in doc.ents:
+# 		if x.label_ in labels.keys():
+# 			labels[x.label_].append(x.text)
+# 		else:
+# 			labels[x.label_]=[x.text]		
+# 	#print labels
+# 	return json.dumps(labels)
 
-num_partitions = 4
-num_cores = multiprocessing.cpu_count()
+
+# import multiprocessing
+# import pandas as pd
+# import numpy as np
+
+# #from gevent.pool import Pool
+# from multiprocessing import Pool
+
+# num_partitions = 4
+# num_cores = multiprocessing.cpu_count()
  
+# # def parallelize_dataframe(df, func):
+# #     a,b,c,d,e = np.array_split(df, num_partitions)
+# #     print a
+# #     pool = Pool(num_cores)
+# #     df = pd.concat(pool.map(func, [a,b,c,d,e]))
+# #     pool.close()
+# #     pool.join()
+# #     return df
+
 # def parallelize_dataframe(df, func):
-#     a,b,c,d,e = np.array_split(df, num_partitions)
-#     print a
+#     df_split = np.array_split(df, num_partitions)
 #     pool = Pool(num_cores)
-#     df = pd.concat(pool.map(func, [a,b,c,d,e]))
+#     #print df_split
+#     df = pd.concat(pool.map(func, df_split))
 #     pool.close()
 #     pool.join()
 #     return df
-
-def parallelize_dataframe(df, func):
-    df_split = np.array_split(df, num_partitions)
-    pool = Pool(num_cores)
-    #print df_split
-    df = pd.concat(pool.map(func, df_split))
-    pool.close()
-    pool.join()
-    return df
 

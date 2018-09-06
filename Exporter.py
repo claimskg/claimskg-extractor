@@ -30,7 +30,7 @@ def main(argv):
 		return
 
 	try:
-		opts, args = getopt.getopt(argv, "", ("rdf=", "website=", "since=", "until=", "maxclaims=", "input=", "output=","language=","html","entity","entity_link","update-db"))
+		opts, args = getopt.getopt(argv, "", ("rdf=", "website=", "since=", "until=", "maxclaims=", "input=", "output=","language=","html","normalized","entity","update-db"))
 
 		
 		
@@ -56,13 +56,10 @@ def main(argv):
 			elif opt == '--html':
 				criteria.html = True
 
+			elif opt == '--normalized':
+				criteria.normalize_credibility = True
+
 			elif opt == '--entity':
-				criteria.entity = True
-
-			elif opt == '--entity_link':
-				criteria.entity_link = True
-
-			elif opt == '--entity_link':
 				criteria.entity_link = True
 
 			elif opt == '--update-db':
