@@ -4,6 +4,15 @@ import json
 import spotlight
 import cgi
 import export_rdf as e_rdf
+import urllib,urllib2,xml
+import lxml
+from lxml.html.clean import Cleaner
+
+cleaner = Cleaner()
+cleaner.javascript = True # This is True because we want to activate the javascript filter
+cleaner.style = True      # This is True because we want to activate the styles & stylesheet filter
+cleaner.page_structure=True
+
 
 count_=0
 current_websites={
@@ -119,13 +128,14 @@ def get_claims(criteria):
 	if (criteria.until):
 		pdf = pdf[pdf['claimReview_datePublished']<=criteria.until]
 
-	if (criteria.entity):
-		print "Extracting Entities..."
-		pdf = extract_entities_from_pdf(pdf)
+	# if (criteria.entity):
+	# 	print "Extracting Entities..."
+	# 	pdf = extract_entities_from_pdf(pdf)
 
 
 	if (criteria.entity_link):
-		print "Extracting Entities link..."
+		print "Extracting Entities..."
+		#pdf = parallelize_dataframe(pdf, extract_entities_link_from_pdf)
 		pdf = extract_entities_link_from_pdf(pdf)
 
 	if (criteria.rdf):
@@ -140,10 +150,9 @@ def get_claims(criteria):
 
 
 def extract_entities_link_from_pdf(pdf):
-	global count_
-	count_=len(pdf)
+	count_=0
 	pdf["extra_entities_claimReview_claimReviewed"] = pdf.apply(lambda x: get_entities_link(x['claimReview_claimReviewed'],current_websites_invert[x['claimReview_author_name']]),axis=1)
-	count_=len(pdf)
+	count_=0
 	pdf["extra_entities_body"] = pdf.apply(lambda x: get_entities_link(x['extra_body'],current_websites_invert[x['claimReview_author_name']]),axis=1)
 
 	def extract_json_entities_link(pdf,col):
@@ -178,26 +187,51 @@ def extract_entities_link_from_pdf(pdf):
 
 
 def get_entities_link(str_,language):
+	import requests
+	import subprocess
+	#print "passou aqui"
 	global count_
-	count_-=1
+	count_+=1
 	print count_
 	annotations= []
 	#to solve float errors 
 	if (type(str_)==type(1.0)):
 		str_=""
 	else:
-		str_=cgi.escape(str_).encode('ascii', 'xmlcharrefreplace')
+		import re
+		#str_=cgi.escape(str_).encode('ascii', 'xmlcharrefreplace')
+		#remove html from string 
+		#
+		str_= cleaner.clean_html(str_)
+		str_=urllib.quote_plus(cgi.escape(str_).encode('ascii', 'xmlcharrefreplace'))
+		#print len (str_)
+		#if len (str_)  > 2000:
+		#	print str_
+		
 	try:
 		if language == "english":
-			annotations = spotlight.annotate('http://model.dbpedia-spotlight.org/en/annotate',str_, confidence=0.4, support=20)
+			#annotations = spotlight.annotate('http://model.dbpedia-spotlight.org/en/annotate',str_, confidence=0.4, support=20)
+			# url="http://localhost:8080/dexter-webapp/api/rest/annotate?min-conf=0.4&text="+str_
+			# contents  = urllib2.urlopen(url).read()
+			# data = json.loads(contents)
+
+			url = 'http://localhost:8080/dexter-webapp/api/rest/annotate'
+			params = {'min-conf': '0.4','text': str_}
+			response = requests.post(url, data=params)
+			data =json.loads(response.text)
+			#print data['spots']
+			annotations = data['spots']
+
+
 		elif language == "german":
 			annotations = spotlight.annotate('http://api.dbpedia-spotlight.org/de/annotate',str_, confidence=0.4, support=20)
 		elif language == "portuguese":
 			annotations = spotlight.annotate('http://api.dbpedia-spotlight.org/pt/annotate',str_, confidence=0.4, support=20)
 	except:
 		annotations= []
-		#print "error claim= " + str_
-
+		print "error trying to annotate text= " 
+	#print "passou aqui 3"
+	#print json.dumps(annotations)
 	return json.dumps(annotations)
 
 
@@ -235,3 +269,33 @@ def get_entities(str_,language):
 			labels[x.label_]=[x.text]		
 	#print labels
 	return json.dumps(labels)
+
+
+import multiprocessing
+import pandas as pd
+import numpy as np
+
+#from gevent.pool import Pool
+from multiprocessing import Pool
+
+num_partitions = 4
+num_cores = multiprocessing.cpu_count()
+ 
+# def parallelize_dataframe(df, func):
+#     a,b,c,d,e = np.array_split(df, num_partitions)
+#     print a
+#     pool = Pool(num_cores)
+#     df = pd.concat(pool.map(func, [a,b,c,d,e]))
+#     pool.close()
+#     pool.join()
+#     return df
+
+def parallelize_dataframe(df, func):
+    df_split = np.array_split(df, num_partitions)
+    pool = Pool(num_cores)
+    #print df_split
+    df = pd.concat(pool.map(func, df_split))
+    pool.close()
+    pool.join()
+    return df
+
