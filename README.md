@@ -22,7 +22,7 @@ Although the Fact-checking is not new (for instance, snopes.com has been active 
 
 Currently, we have extracted 1463 claims from these Brazilian fact-checking.
 
-### English - [Some Statics about the data here] (https://github.com/vwoloszyn/fake_news_extractor/blob/master/statistics/english_.ipynb)
+### English - [Some Statics about the data here](https://github.com/vwoloszyn/fake_news_extractor/blob/master/statistics/english_.ipynb)
 
 - Fullfact - https://fullfact.org/
 - Snopes - https://www.snopes.com/
