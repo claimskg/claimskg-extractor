@@ -50,6 +50,7 @@ We extracted 5193 claims from german websites.
 - "Date"	: Date when the article was published
 - "Referred Links"		: References used for verifying the claim.
 - "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
+- "Normalized Credibility"					: FALSE, TRUE, MIXED, OTHER
 
 ## Prerequisites
 Expected package dependencies are listed in the "requirements.txt" file for PIP, you need to run the following command to get dependencies:
