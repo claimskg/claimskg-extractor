@@ -76,6 +76,9 @@ class Claim:
 
 	def setConclusion(self, str_):
 		#old! just to be sure that new websites export the same informatio
+		if (type(str_)==type(0.0)):
+			str_=""
+		str_=str_.encode('ascii', 'xmlcharrefreplace').lower().strip()
 		self.conclusion = unicode(str_)
 		self.alternateName = self.conclusion
 		return self

@@ -48,11 +48,11 @@ dict_normalized_alternateName={
 
 "truthorfiction-fiction":"FALSE",
 "truthorfiction-truth":"TRUE",
-"truthorfiction-truth & fiction":"MIXED",
-"truthorfiction-mostly fiction":"MIXED",
-"truthorfiction-truth & misleading":"MIXED",
+"truthorfiction-truth & fiction":"MIXTURE",
+"truthorfiction-mostly fiction":"MIXTURE",
+"truthorfiction-truth & misleading":"MIXTURE",
 "truthorfiction-reported as fiction":"FALSE",
-"truthorfiction-mostly truth":"MIXED",
+"truthorfiction-mostly truth":"MIXTURE",
 "truthorfiction-farcical":"FALSE",
 }
 default_label="OTHER"
