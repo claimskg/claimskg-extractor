@@ -15,9 +15,9 @@ class Claim:
 		self.sameAs=""
 		self.source_url=""
 		self.html=False
-		self.ratingValue="-1"
-		self.worstRating="-1"
-		self.bestRating="-1"
+		self.ratingValue=""
+		self.worstRating=""
+		self.bestRating=""
 		self.alternateName=""
 
 
