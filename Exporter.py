@@ -2,8 +2,8 @@
 import sys,getopt,datetime,codecs
 sys.path.append('ce')
 
-import claimextractor as ce
-import Criteria
+from ce import claimextractor as ce
+from ce import Criteria
 
 
 
