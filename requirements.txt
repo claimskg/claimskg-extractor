@@ -4,3 +4,4 @@ beautifulsoup4==4.6.0
 spacy==2.0.12
 pyspotlight==0.7.2
 rdflib==4.2.2
+tqdm
