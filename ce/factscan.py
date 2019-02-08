@@ -102,7 +102,7 @@ def get_all_claims(criteria):
 
 			#rating
 
-			claim_.setRatingValue(parse_wrong_json(json_,'"ratingValue":',","))
+			claim_.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
 			claim_.setWorstRating(parse_wrong_json(json_,'"worstRating":',","))
 			claim_.setBestRating(parse_wrong_json(json_,'"bestRating":',","))
 			claim_.setAlternateName(parse_wrong_json(json_,'"alternateName":',","))
