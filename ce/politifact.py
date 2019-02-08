@@ -102,8 +102,8 @@ def get_all_claims(criteria):
                 claim_.worstRating = obj.find("div", {"itemprop": "worstRating"}).text
                 claim_.bestRating = obj.find("div", {"itemprop": "bestRating"}).text
                 claim_.alternateName = obj.find("div", {"itemprop": "alternateName"}).text
-            else:
-                claim_.setConclusion(conclusion)
+            # else:
+                # claim_.setConclusion(conclusion)
 
             # body
             body = soup.find("div", {"class": "article__text"})
