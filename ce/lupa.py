@@ -87,7 +87,7 @@ def get_all_claims(criteria):
 			tags_ = [t.text for t in soup.findAll('a', {'rel':'tag'})]
 			claim_.setTags(tags_)
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "error=>"+str(url_complete)
 

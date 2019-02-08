@@ -89,7 +89,7 @@ def get_all_claims(criteria):
 
 
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "error=>"+url_complete
     

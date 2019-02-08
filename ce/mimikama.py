@@ -87,7 +87,7 @@ def get_all_claims(criteria):
 			body = soup.find("div", {"class": "td-post-content"})
 			claim_.setBody(body.get_text())
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "Erro =>"+ url
 

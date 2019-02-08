@@ -115,7 +115,7 @@ def get_all_claims(criteria):
 			if (claim_.conclusion.replace(" ","")=="" or claim_.claim.replace(" ","")==""):
 				raise ValueError('No conclusion or claim')
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "Error ->" + str(url_complete)
 

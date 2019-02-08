@@ -45,7 +45,7 @@ def get_all_claims(criteria):
                 claim_.setRefered_links(refered_links)
                 claim_.setClaim(soup2.find('strong').text)
                 claim_.setBody("\n".join([l.text for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('p')]))
-                claims.append(claim_.getDict())
+                claims.append(claim_.generate_dictionary())
         except:
             print "error=>"+str('http://www.e-farsas.com/page/' + str(page_i))
     print('Number of claims: '+str(len(claims)))

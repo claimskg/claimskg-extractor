@@ -100,7 +100,7 @@ def get_all_claims(criteria):
 				tags.append(tag["content"])
 			claim_.setTags(", ".join(tags))
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "Error ->" + str(url_complete)
 

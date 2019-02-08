@@ -50,7 +50,7 @@ def get_all_claims(criteria):
                 if c.name == 'hr':
                     if stop:
                         claim_.setRefered_links(refered_links)
-                        claims.append(claim_.getDict())
+                        claims.append(claim_.generate_dictionary())
                         claim_ = new_claim(f_link, date_, title_, tags_)
                         stop = False
                     contr = 1
@@ -80,7 +80,7 @@ def get_all_claims(criteria):
                 if (criteria.maxClaims > 0 and len(claims) >= criteria.maxClaims):
                     break
                 claim_.setRefered_links(refered_links)
-                claims.append(claim_.getDict())
+                claims.append(claim_.generate_dictionary())
     print('Number of claims: '+str(len(claims)))
     pdf = pd.DataFrame(claims)
     return pdf

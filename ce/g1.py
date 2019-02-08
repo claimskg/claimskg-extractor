@@ -94,7 +94,7 @@ def get_all_claims(criteria):
 			#print claim_.conclusion.decode("utf-8")
 			#print "-->"+ str(claim_.conclusion)
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "Error ->" + str(url_complete)
 

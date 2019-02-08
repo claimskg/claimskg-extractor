@@ -92,7 +92,7 @@ class Claim:
     def setHtml(self, str_):
         self.html = str_
 
-    def getDict(self):
+    def generate_dictionary(self):
         dict_ = {'rating_ratingValue': self.ratingValue, 'rating_worstRating': self.worstRating,
                  'rating_bestRating': self.bestRating, 'rating_alternateName': self.alternateName,
                  'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.datePublished,

@@ -171,7 +171,7 @@ def get_all_claims(criteria):
 				#print claim_.conclusion 
 				raise ValueError('No conclusion or claim')
 
-			claims.append(claim_.getDict())
+			claims.append(claim_.generate_dictionary())
 		except:
 			print "Error ->" + str(url_complete)
 
