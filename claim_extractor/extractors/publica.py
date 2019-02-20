@@ -1,7 +1,7 @@
 import pandas as pd
 from bs4 import BeautifulSoup
-import urllib2
-import Claim as claim_obj
+import urllib.request, urllib.error, urllib.parse
+from claim_extractor import Claim
 import dateparser
 
 
@@ -17,14 +17,14 @@ def get_all_claims(criteria):
     # Get the number of pages
     pages_links = soup.findAll('a', {"class": "page-link"})
     number_of_pages = int(pages_links[::-1][1].text)
-    print('Number of pages: ' + str(number_of_pages))
+    print(('Number of pages: ' + str(number_of_pages)))
 
     # For each page
     for page_i in range(number_of_pages):
         if (criteria.maxClaims > 0 and len(claims)>= criteria.maxClaims):
             break
         page_i += 1
-        print('Page ' + str(page_i) + '|' + str(number_of_pages))
+        print(('Page ' + str(page_i) + '|' + str(number_of_pages)))
         soup = get_soup('https://apublica.org/checagem/page/' + str(page_i) + '/')
 
         fact_links = [fl.a['href'] for fl in soup.findAll('div', {"class": "card"})]
@@ -49,7 +49,7 @@ def get_all_claims(criteria):
                 if c.name is None: continue
                 if c.name == 'hr':
                     if stop:
-                        claim_.setRefered_links(refered_links)
+                        claim_.set_refered_links(refered_links)
                         claims.append(claim_.generate_dictionary())
                         claim_ = new_claim(f_link, date_, title_, tags_)
                         stop = False
@@ -79,25 +79,25 @@ def get_all_claims(criteria):
             if stop:
                 if (criteria.maxClaims > 0 and len(claims) >= criteria.maxClaims):
                     break
-                claim_.setRefered_links(refered_links)
+                claim_.set_refered_links(refered_links)
                 claims.append(claim_.generate_dictionary())
-    print('Number of claims: '+str(len(claims)))
+    print(('Number of claims: '+str(len(claims))))
     pdf = pd.DataFrame(claims)
     return pdf
 
 
 def get_soup(url):
     user_agent = 'Mozilla/5.0'
-    request = urllib2.urlopen(urllib2.Request(url, data=None, headers={'User-Agent': user_agent}))
+    request = urllib.request.urlopen(urllib.request.Request(url, data=None, headers={'User-Agent': user_agent}))
     page = request.read()
     return BeautifulSoup(page, 'lxml')
 
 
 def new_claim(f_link, date, title, tags):
-    claim_ = claim_obj.Claim()
+    claim_ = Claim()
     claim_.setUrl(f_link)
     claim_.setTitle(title)
-    claim_.setTags(tags)
+    claim_.set_tags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
     claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
