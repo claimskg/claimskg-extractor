@@ -1,73 +1,45 @@
 
-[![DOI](https://zenodo.org/badge/134137682.svg)](https://zenodo.org/badge/latestdoi/134137682)
 
+## ClaimsKG
+This project constitutes the web scraping component of ClaimsKG that crawls fact checking sites (mostly taken from https://www.poynter.org/international-fact-checking-network-fact-checkers-code-principles, which holds a list of reliable fact-checking sites) and generates a CSV file with a dump of the extracted information. 
 
-## Fact-Checking
-One valuable instrument to verify the truthfulness of a claim is Fact-checking. Usually, Fact-checking is a non-profit organization that provides an independent investigation about questionable facts. Besides providing free tools, information, and advice, it is the rich knowledge base that can be used to train computational models to detect this type of fake content automatically.
+This project is a fork of https://github.com/vwoloszyn/fake_news_extractor that has been refactored and repurposed for the specific needs of ClaimsKG. Most of the original extractors for English-language fact-checking sites have been reimplemented under a new architecture and are the only ones that are functional (see list below). Althrough the original extractors for Portuguese language and German language sites are still present, they haven't yet been integrated, please refer to the orignal implementation if you need to use those. 
 
-
-We are just starting, and there are still several things to be done (and issues to be solved). So if you want to contribute to a nice project, welcome aboard!!
-
-* We just use websites considered by the fact checking community as highly reputable https://www.poynter.org/international-fact-checking-network-fact-checkers-code-principles .
-
-### Portuguese
-Although the Fact-checking is not new (for instance, snopes.com has been active for more than 10 years), unfortunately, these initiatives are still young and scared for Portuguese. Some of prominent Brazilian Fact-checking are:
-
-
-- Lupa – http://piaui.folha.uol.com.br/lupa/
-- Aos Fatos – https://aosfatos.org/aos-fatos-e-noticia/
-- Publica – https://apublica.org/checagem/
-- G1 - https://g1.globo.com/e-ou-nao-e/
-- E-farsas - http://www.e-farsas.com/
-
-Currently, we have extracted 1463 claims from these Brazilian fact-checking.
-
-### English - [Some Statistics](https://github.com/vwoloszyn/fake_news_extractor/blob/master/statistics/english_.ipynb)
+### English
 
 - Fullfact - https://fullfact.org/
 - Snopes - https://www.snopes.com/
 - Politifact - http://www.politifact.com/
 - TruthOrFiction - http://TruthOrFiction.com
 - Checkyourfact - http://checkyourfact.com
+- FactsCan - http://factscan.ca/
+- AfricaCheck - https://africacheck.org/
 
-We have extracted 27594 claims from these websites.
-
-### German
-
-- Mimika - https://www.mimikama.at/
-- Correctiv - https://correctiv.org/
-
-We extracted 5193 claims from german websites.
+See the ClaimsKG dataset website for statistics (https://data.gesis.org/claimskg/site)
 
 
 
 ## Features Extracted
 
-- "Claim"					: Textual claim which is being verified
-- "Credibility"			: true/false
-- "URL"					: URL of the corresponding source page
+- "Claim"			: Textual statement of the claim which is being verified
+- "Credibility"			: Truth rating provided by the respective sites in its original form
+- "URL"				: URL of the corresponding source page
 - "body"			: Description provided by the source article about why the claim is true or false
-- "Date"	: Date when the article was published
+- "Date"	: 		: Date when the claim was made. 
 - "Referred Links"		: References used for verifying the claim.
-- "Tags"					: Set of tags provided on the Snope article (seperated by semicolon)
-- "Normalized Credibility"					: FALSE, TRUE, MIXED, OTHER
+- "Tags"			: Set of tags or topics provided by the fact checking site.
+- "Normalized Credibility"	: FALSE, TRUE, MIXED, OTHER
+
+This version of the extractor doesn't annotate the description and claim with entities on its own, there is a consecutive step to add annotations to the CSV files with TagMe (see tagme fork in the claimskg project group). 
 
 ## Prerequisites
+This reimplementation runs on Python3.5+. 
 Expected package dependencies are listed in the "requirements.txt" file for PIP, you need to run the following command to get dependencies:
 ```
 pip install -r requirements.txt
 ```
 
 ## Examples of usage
-
-### Python
-- Get claims by website
-``` python
-	import ce.claimextractor as ce
-  	pdf = ce.get_claims("fullfact")
-	pdf.head()
-
-```    
 
 ### Command-line usage
 Export claims to a csv file named "output_got.csv".
@@ -79,31 +51,7 @@ Export claims to a csv file named "output_got.csv".
 ```
     python Exporter.py --website fullfact,snopes
 ```
-- Get claims by language
-```
-    python Exporter.py --language portuguese
-```
 - limit of number of claims
 ```
-    python Exporter.py --language portuguese --maxclaims 30
-```
-- Extract Entities
-```
-    python Exporter.py --language portuguese --entity
-```
-- Extract HTML
-```
-    python Exporter.py --language portuguese --html
-```
-## How to cite
-Bibtex - https://dl.acm.org/downformats.cfm?id=3201083&parent_id=3201064&expformat=bibtex
-```
-@inproceedings{woloszyn2018distrustrank,
-  title={DistrustRank: Spotting False News Domains},
-  author={Woloszyn, Vinicius and Nejdl, Wolfgang},
-  booktitle={Proceedings of the 10th ACM Conference on Web Science},
-  pages={221--228},
-  year={2018},
-  organization={ACM}
-}
+    python Exporter.py --maxclaims 30
 ```
