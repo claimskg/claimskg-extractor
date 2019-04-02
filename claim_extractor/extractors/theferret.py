@@ -60,8 +60,8 @@ def get_all_claims(criteria):
             soup.prettify("utf-8")
 
             claim_ = Claim()
-            claim_.setUrl(url_complete)
-            claim_.setSource("theferret")
+            claim_.set_url(url_complete)
+            claim_.set_source("theferret")
 
             if (criteria.html):
                 claim_.setHtml(soup.prettify("utf-8"))
@@ -69,7 +69,7 @@ def get_all_claims(criteria):
             # title
             # if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
             title = soup.find("h1", {"class": "cover-title"})
-            claim_.setTitle(title.text)
+            claim_.set_title(title.text)
 
             # date
 
@@ -92,7 +92,7 @@ def get_all_claims(criteria):
                 related_links.append(link['href'])
             claim_.set_refered_links(related_links)
 
-            claim_.setClaim(soup.find("h1", {"class": "article__title"}).text)
+            claim_.set_claim(soup.find("h1", {"class": "article__title"}).text)
             claim_.setConclusion(conclusion)
 
             tags = []

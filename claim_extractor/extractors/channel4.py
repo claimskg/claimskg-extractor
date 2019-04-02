@@ -64,8 +64,8 @@ def get_all_claims(criteria):
             soup.prettify("utf-8")
 
             claim_ = Claim()
-            claim_.setUrl(url_complete)
-            claim_.setSource("channel4")
+            claim_.set_url(url_complete)
+            claim_.set_source("channel4")
 
             if (criteria.html):
                 claim_.setHtml(soup.prettify("utf-8"))
@@ -73,7 +73,7 @@ def get_all_claims(criteria):
             # title
             # if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
             title = soup.find("div", {"class": "factcheck-article-header"}).find("h1").get_text()
-            claim_.setTitle(title)
+            claim_.set_title(title)
 
             # date
 
@@ -96,7 +96,7 @@ def get_all_claims(criteria):
                 related_links.append(link['href'])
             claim_.set_refered_links(related_links)
 
-            claim_.setClaim(title)
+            claim_.set_claim(title)
 
             tags = []
 

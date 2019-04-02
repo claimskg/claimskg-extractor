@@ -42,10 +42,10 @@ def get_all_claims(criteria):
         print(str(index) + "/" + str(len(urls_)) + " extracting " + str(url))
         index += 1
         claim_ = Claim()
-        claim_.setSource("fullfact")
+        claim_.set_source("fullfact")
 
         url_complete = "http://fullfact.org" + url
-        claim_.setUrl(url_complete)
+        claim_.set_url(url_complete)
         page = urllib.request.urlopen(url_complete).read()
         soup = BeautifulSoup(page, "lxml")
         soup.prettify()
@@ -53,7 +53,7 @@ def get_all_claims(criteria):
         # claim
         claim = soup.find('div', {"class": "col-xs-12 col-sm-6 col-left"})
         if claim:
-            claim_.setClaim(claim.get_text().replace("\nClaim\n", ""))
+            claim_.set_claim(claim.get_text().replace("\nClaim\n", ""))
 
         # conclusin
         conclusion = soup.find('div', {"class": "col-xs-12 col-sm-6 col-right"})
@@ -62,7 +62,7 @@ def get_all_claims(criteria):
 
         # title
         title = soup.find("div", {"class": "container main-container"}).find('h1')
-        claim_.setTitle(title.text)
+        claim_.set_title(title.text)
 
         # date
         date = soup.find("p", {"class": "hidden-xs hidden-sm date updated"})

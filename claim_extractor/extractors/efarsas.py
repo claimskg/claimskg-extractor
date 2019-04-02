@@ -46,7 +46,7 @@ def get_all_claims(criteria):
                     claim_.setHtml(soup2.prettify("utf-8"))
                 refered_links = [l['href'] for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('a')]
                 claim_.set_refered_links(refered_links)
-                claim_.setClaim(soup2.find('strong').text)
+                claim_.set_claim(soup2.find('strong').text)
                 claim_.setBody(
                     "\n".join([l.text for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('p')]))
                 claims.append(claim_.generate_dictionary())
@@ -66,12 +66,12 @@ def get_soup(url):
 
 def new_claim(f_link, date, title, tags):
     claim_ = Claim()
-    claim_.setUrl(f_link)
-    claim_.setTitle(title)
+    claim_.set_url(f_link)
+    claim_.set_title(title)
     claim_.set_tags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
     claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
-    claim_.setSource("efarsas")
+    claim_.set_source("efarsas")
     claim_.setBody("")
     return claim_

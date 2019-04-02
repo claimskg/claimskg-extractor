@@ -4,7 +4,7 @@ from typing import List, Set
 
 import pandas as pd
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag, NavigableString
 from dateparser.search import search_dates
 from tqdm import tqdm
 
@@ -62,15 +62,15 @@ def get_all_claims(criteria):
         soup.prettify("utf-8")
 
         claim_ = Claim()
-        claim_.setUrl(url_complete)
-        claim_.setSource("africacheck")
-
-        if (criteria.html):
-            claim_.setHtml(soup.prettify("utf-8"))
+        claim_.set_url(url_complete)
+        claim_.set_source("africacheck")
 
         # title
         title = soup.find("meta", {"property": "og:title"})
-        claim_.setTitle(title['content'])
+        title_content = title['content']
+        if "|" in title_content:
+            title_content = title_content.split("|")[-1]
+        claim_.set_title(title_content)
 
         # date
 
@@ -94,7 +94,7 @@ def get_all_claims(criteria):
             if soup.find("div", {"class": "indicator"}).find('span'):
                 truth_rating = soup.find("div", {"class": "indicator"}).find('span').get_text()
 
-        claim_.setAlternateName(str(re.sub('[^A-Za-z0-9 -]+', '', truth_rating)).lower().strip())
+        claim_.set_alternate_name(str(re.sub('[^A-Za-z0-9 -]+', '', truth_rating)).lower().strip())
 
         # when there is no json
 
@@ -109,7 +109,7 @@ def get_all_claims(criteria):
         # author
         author = soup.find("div", {"class": "sharethefacts-speaker-name"})
         if author:
-            claim_.setAuthor(author.get_text())
+            claim_.set_author(author.get_text())
 
         # related links
         divTag = soup.find("div", {"id": "main"})
@@ -119,9 +119,9 @@ def get_all_claims(criteria):
         claim_.set_refered_links(related_links)
 
         if soup.find("div", {"class": "report-claim"}):
-            claim_.setClaim(soup.find("div", {"class": "report-claim"}).find("strong").get_text())
+            claim_.set_claim(soup.find("div", {"class": "report-claim"}).find("strong").get_text())
         else:
-            claim_.setClaim(claim_.title)
+            claim_.set_claim(claim_.title)
 
         tags = []
 
@@ -173,65 +173,48 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 urls.add(url)
         return urls
 
-    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> Claim:
+    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
+        local_claims = []
         claim = Claim()
-        claim.setUrl(url)
-        claim.setSource("africacheck")
+        claim.set_url(url)
+        claim.set_source("africacheck")
 
         # title
         title = parsed_claim_review_page.find("meta", {"property": "og:title"})
-        claim.setTitle(title['content'])
+        global_title_text = title['content']
+        claim.set_title(global_title_text)
 
         # date
-
-        date_ = parsed_claim_review_page.find('time')
-        # print date_["content"]
-        if date_:
-            date_str = search_dates(date_['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
-            # print date_str
-            claim.setDate(date_str)
-        # print claim_.date
+        date = parsed_claim_review_page.find('time')
+        global_date_str = ""
+        if date:
+            global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
+            claim.setDate(global_date_str)
 
         # rating
-
-        truth_rating = ""
+        global_truth_rating = ""
         if parsed_claim_review_page.find("div", {"class": "verdict-stamp"}):
-            truth_rating = parsed_claim_review_page.find("div", {"class": "verdict-stamp"}).get_text()
+            global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict-stamp"}).get_text()
         if parsed_claim_review_page.find("div", {"class": "verdict"}):
-            truth_rating = parsed_claim_review_page.find("div", {"class": "verdict"}).get_text()
+            global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict"}).get_text()
         if parsed_claim_review_page.find("div", {"class": "indicator"}):
-            truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).get_text()
+            global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).get_text()
             if parsed_claim_review_page.find("div", {"class": "indicator"}).find('span'):
-                truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find('span').get_text()
+                global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
+                    'span').get_text()
 
-        claim.setAlternateName(str(re.sub('[^A-Za-z0-9 -]+', '', truth_rating)).lower().strip())
-
-        # when there is no json
-
-        date_ = parsed_claim_review_page.find("time", {"class": "datetime"})
-        if date_:
-            claim.setDate(date_.get_text())
-
-        # body
-        body = parsed_claim_review_page.find("div", {"id": "main"})
-        claim.setBody(body.get_text())
+        claim.set_alternate_name(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip())
 
         # author
         author = parsed_claim_review_page.find("div", {"class": "sharethefacts-speaker-name"})
         if author:
-            claim.setAuthor(author.get_text())
+            claim.set_author(author.get_text())
 
-        # related links
-        divTag = parsed_claim_review_page.find("div", {"id": "main"})
-        related_links = []
-        for link in divTag.findAll('a', href=True):
-            related_links.append(link['href'])
-        claim.set_refered_links(related_links)
+        # when there is no json
 
-        if parsed_claim_review_page.find("div", {"class": "report-claim"}):
-            claim.setClaim(parsed_claim_review_page.find("div", {"class": "report-claim"}).find("strong").get_text())
-        else:
-            claim.setClaim(claim.title)
+        date = parsed_claim_review_page.find("time", {"class": "datetime"})
+        if date:
+            claim.setDate(date.get_text())
 
         tags = []
 
@@ -239,4 +222,139 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             tags.append(tag["content"])
         claim.set_tags(", ".join(tags))
 
-        return claim
+        global_claim_text = ""
+        report_claim_div = parsed_claim_review_page.find("div", {"class": "report-claim"})
+        if report_claim_div:
+            claim.set_claim(report_claim_div.find("p").get_text())
+        else:
+            claim.set_claim(claim.title)
+
+        inline_ratings = parsed_claim_review_page.findAll("div", {"class", "inline-rating"})
+        entry_section = parsed_claim_review_page.find("section", {"class", "entry-content"})  # type: Tag
+        entry_section_full_text = entry_section.text
+
+        # There are several claims checked within the page. Common date, author, tags ,etc.
+        if inline_ratings and len(inline_ratings) > 0:
+            entry_contents = entry_section.contents  # type : List[Tag]
+            current_index = 0
+
+            # First we extract the bit of text common to everything until we meed a sub-section
+            body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
+            claim.setBody(body_text)
+            claim.set_refered_links(links)
+
+            while current_index < len(entry_contents):
+                current_index = forward_until_inline_rating(entry_contents, current_index)
+                inline_rating_div = entry_contents[current_index]
+                if isinstance(inline_rating_div, NavigableString):
+                    break
+                claim_text = inline_rating_div.find("p", {"class": "claim-content"}).text
+                inline_rating = inline_rating_div.find("div", {"class", "indicator"}).find("span").text
+                previous_current_index = current_index
+                inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
+                                                                                                     current_index)
+                if previous_current_index == current_index:
+                    current_index += 1
+                inline_claim = Claim()
+                inline_claim.set_source("africacheck")
+                inline_claim.set_claim(claim_text)
+                inline_claim.set_alternate_name(inline_rating)
+                inline_claim.set_refered_links(",".join(inline_links))
+                inline_claim.setBody(inline_body_text)
+                inline_claim.set_tags(", ".join(tags))
+                inline_claim.setDate(global_date_str)
+                inline_claim.set_url(url)
+                if author:
+                    inline_claim.set_author(author.get_text())
+                inline_claim.set_title(global_title_text)
+
+                local_claims.append(inline_claim)
+        elif "PROMISE:" in entry_section_full_text and "VERDICT:" in entry_section_full_text:
+            entry_contents = entry_section.contents  # type : List[Tag]
+            current_index = 0
+
+            # First we extract the bit of text common to everything until we meed a sub-section
+            body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
+            claim.setBody(body_text)
+            claim.set_refered_links(links)
+
+            while current_index < len(entry_contents):
+                inline_rating_div = entry_contents[current_index]
+                if isinstance(inline_rating_div, NavigableString):
+                    break
+                claim_text = entry_contents[current_index + 2].span.text
+                inline_rating = entry_contents[current_index + 4].span.text
+                current_index += 5
+                previous_current_index = current_index
+                inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
+                                                                                                     current_index)
+                if previous_current_index == current_index:
+                    current_index += 1
+                inline_claim = Claim()
+                inline_claim.set_source("africacheck")
+                inline_claim.set_claim(claim_text)
+                inline_claim.set_alternate_name(inline_rating)
+                inline_claim.set_refered_links(",".join(inline_links))
+                inline_claim.setBody(inline_body_text)
+                inline_claim.set_tags(", ".join(tags))
+                inline_claim.setDate(global_date_str)
+                inline_claim.set_url(url)
+                if author:
+                    inline_claim.set_author(author.get_text())
+                inline_claim.set_title(global_title_text)
+
+                local_claims.append(inline_claim)
+
+        else:
+            # body
+            body = parsed_claim_review_page.find("div", {"id": "main"})
+            claim.setBody(body.get_text())
+
+            # related links
+            divTag = parsed_claim_review_page.find("div", {"id": "main"})
+            related_links = []
+            for link in divTag.findAll('a', href=True):
+                related_links.append(link['href'])
+            claim.set_refered_links(",".join(related_links))
+
+        local_claims.append(claim)
+
+        return local_claims
+
+
+def get_text_and_links_until_next_header(contents: List[Tag], current_index) -> (Tag, List[str], int):
+    links = []  # type : List[str]
+    current_element = contents[current_index]
+    text = ""
+    if not isinstance(current_element, NavigableString):
+        text = current_element.text
+        for link in current_element.findAll('a', href=True):
+            links.append(link['href'])
+    while current_element.name != "h2" and current_index < len(contents) - 1:
+        current_index += 1
+        current_element = contents[current_index]
+        if not isinstance(current_element, NavigableString):
+            for link in current_element.findAll('a', href=True):
+                links.append(link['href'])
+            text += current_element.text
+
+    return text, links, current_index
+
+
+def forward_until_inline_rating(contents: List[Tag], current_index) -> int:
+    current_element = contents[current_index]
+
+    if isinstance(current_element, NavigableString):
+        div_rating = None
+    else:
+        div_rating = current_element.find("div", {"class", "inline-rating"})
+
+    while (not div_rating or "inline-rating" not in div_rating['class']) and current_index < len(contents) - 1:
+        current_index += 1
+        current_element = contents[current_index]
+        if isinstance(current_element, NavigableString):
+            div_rating = None
+        else:
+            div_rating = current_element.find("div", {"class", "inline-rating"})
+
+    return current_index

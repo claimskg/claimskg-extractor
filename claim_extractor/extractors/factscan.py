@@ -48,10 +48,10 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 urls.add(url)
         return urls
 
-    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> Claim:
+    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         claim = Claim()
-        claim.setUrl(url)
-        claim.setSource("factscan")
+        claim.set_url(url)
+        claim.set_source("factscan")
 
         json_ = None
         if parsed_claim_review_page.find("script", {"type": "application/ld+json"}):
@@ -70,7 +70,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # title
         title = parsed_claim_review_page.find("meta", {"property": "og:title"})['content']
-        claim.setTitle(title)
+        claim.set_title(title)
 
         # claim review date
         date = parsed_claim_review_page.find('meta', {"property": "article:published_time"})
@@ -104,7 +104,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
         claim.setWorstRating(parse_wrong_json(json_, '"worstRating":', ","))
         claim.set_best_rating(parse_wrong_json(json_, '"bestRating":', ","))
-        claim.setAlternateName(parse_wrong_json(json_, '"alternateName":', ","))
+        claim.set_alternate_name(parse_wrong_json(json_, '"alternateName":', ","))
 
         # when there is no json
         if not claim.alternate_name:
@@ -125,7 +125,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             author = summary_box.find("p").find("strong")
 
         if author:
-            claim.setAuthor(author.text)
+            claim.set_author(author.text)
 
         # same_as
         claim.setSameAs(parse_wrong_json(json_, '"sameAs": [', "]"))
@@ -138,9 +138,9 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_refered_links(related_links)
 
         if parsed_claim_review_page.find("div", {"class": "sharethefacts-statement"}):
-            claim.setClaim(parsed_claim_review_page.find("div", {"class": "sharethefacts-statement"}).get_text())
+            claim.set_claim(parsed_claim_review_page.find("div", {"class": "sharethefacts-statement"}).get_text())
         else:
-            claim.setClaim(claim.title)
+            claim.set_claim(claim.title)
 
         tags = []
 
@@ -151,4 +151,4 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 tags.append(tag.text)
         claim.set_tags(", ".join(tags))
 
-        return claim
+        return [claim]

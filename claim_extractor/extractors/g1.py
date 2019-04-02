@@ -53,8 +53,8 @@ def get_all_claims(criteria):
         soup.prettify("utf-8")
 
         claim_ = Claim()
-        claim_.setUrl(url_complete)
-        claim_.setSource("g1")
+        claim_.set_url(url_complete)
+        claim_.set_source("g1")
 
         if (criteria.html):
             claim_.setHtml(soup.prettify("utf-8"))
@@ -63,7 +63,7 @@ def get_all_claims(criteria):
             # title
             # if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
             title = soup.find("h1", {"class": "content-head__title"})
-            claim_.setTitle(title.text)
+            claim_.set_title(title.text)
 
             # date
 
@@ -88,7 +88,7 @@ def get_all_claims(criteria):
             claim_conclusion = soup.find("h1", {"class": "content-head__title"}).get_text()
             # claim_.setClaim(claim_conclusion)
             # if (len(claim_conclusion.split("?"))>1):
-            claim_.setClaim(claim_conclusion.split("?")[0])
+            claim_.set_claim(claim_conclusion.split("?")[0])
             claim_.setConclusion(claim_conclusion.split("?")[1])
             # if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").findAll("figcaption")):
             # 	claim_.setConclusion(claim_element.find_previous_sibling("figure").findAll("figcaption")[-1:][0].get_text())

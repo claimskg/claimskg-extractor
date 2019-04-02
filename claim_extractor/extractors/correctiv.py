@@ -55,8 +55,8 @@ def get_all_claims(criteria):
             soup.prettify("utf-8")
 
             claim_ = Claim()
-            claim_.setUrl(url_complete)
-            claim_.setSource("correctiv")
+            claim_.set_url(url_complete)
+            claim_.set_source("correctiv")
 
             if (criteria.html):
                 claim_.setHtml(soup.prettify("utf-8"))
@@ -64,7 +64,7 @@ def get_all_claims(criteria):
             # title
             # if (soup.find("h1",{"class":"content-head__title"}) and len(soup.find("h1",{"class":"content-head__title"}).get_text().split("?"))>1):
             title = soup.find("h1", {"class": "article-header__headline"})
-            claim_.setTitle(title.text.replace("Faktencheck:", "").replace("\n", ""))
+            claim_.set_title(title.text.replace("Faktencheck:", "").replace("\n", ""))
 
             date_ = soup.find('time', {"class": "article-body__publishing-date"})
             # print date_["content"]
@@ -85,7 +85,7 @@ def get_all_claims(criteria):
                 related_links.append(link['href'])
             claim_.set_refered_links(related_links)
 
-            claim_.setClaim(claim_.title)
+            claim_.set_claim(claim_.title)
             conclsion = soup.find('div', {"class": "article-body__claimreview claimreview"})
             if conclsion:
                 claim_.setConclusion(conclsion.text.replace("Unsere Bewertung: ", "").replace("\n", ""))

@@ -1,10 +1,10 @@
 import datetime
-
-import dateparser
-import pandas as pd
 import urllib.error
 import urllib.parse
 import urllib.request
+
+import dateparser
+import pandas as pd
 from bs4 import BeautifulSoup
 
 from claim_extractor import Claim
@@ -45,9 +45,9 @@ def get_all_claims(criteria):
         index += 1
         try:
             claim_ = Claim()
-            claim_.setSource("lupa")
+            claim_.set_source("lupa")
             url_complete = url
-            claim_.setUrl(url_complete)
+            claim_.set_url(url_complete)
             page = urllib.request.urlopen(url_complete).read()
             soup = BeautifulSoup(page, "lxml")
             soup.prettify()
@@ -62,14 +62,14 @@ def get_all_claims(criteria):
 
             # title
             title = soup.find("h2", {"class": "bloco-title"})
-            claim_.setTitle(title.text)
+            claim_.set_title(title.text)
 
             # claim
             claim = soup.find('div', {"class": "post-inner"}).find('div', {"class": "etiqueta"})
             if claim and claim.find_previous('strong'):
-                claim_.setClaim(claim.find_previous('strong').get_text())
+                claim_.set_claim(claim.find_previous('strong').get_text())
             else:
-                claim_.setClaim(claim_.title)
+                claim_.set_claim(claim_.title)
 
             # date
             date = soup.find("div", {"class": "bloco-meta"})

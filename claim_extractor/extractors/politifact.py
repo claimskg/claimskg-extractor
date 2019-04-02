@@ -52,14 +52,14 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 urls.add(url)
         return urls
 
-    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> Claim:
+    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         claim = Claim()
-        claim.setUrl(url)
-        claim.setSource("politifact")
+        claim.set_url(url)
+        claim.set_source("politifact")
 
         # title
         title = parsed_claim_review_page.find("h1", {"class": "article__title"})
-        claim.setTitle(title.text)
+        claim.set_title(title.text)
 
         # date
         date = parsed_claim_review_page.find('div', {"class": "widget__content"}).find("p")
@@ -94,21 +94,34 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.setBody(body.get_text())
 
         # author
-        author = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
-        if author:
-            author = author.find("div", {"itemprop": "author"})
-            author_text = author.text
-            claim.setAuthor(author_text)
+        statement_meta = parsed_claim_review_page.find("p", {"class": "statement__meta"})
+        if statement_meta:
+            author = statement_meta.find("a").text
+            claim.set_author(author)
+        else:
+            author = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
+            if author:
+                author = author.find("div", {"itemprop": "author"})
+                author_text = author.text
+                claim.set_author(author_text)
 
         # same as
         rating_div = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
         if rating_div and rating_div.find("div", {"itemprop": "sameAs"}):
             claim.setSameAs(rating_div.find("div", {"itemprop": "sameAs"}).get_text())
 
-        # sameAs
-        rating_div = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
-        if rating_div and rating_div.find("div", {"itemprop": "datePublished"}):
-            claim.setDatePublished(rating_div.find("div", {"itemprop": "datePublished"}).get_text())
+        # date published
+        if statement_meta:
+            meta_text = statement_meta.text
+            if meta_text:
+                date = search_dates(meta_text)
+                if date:
+                    date = date[0][1].strftime("%Y-%m-%d")
+                    claim.setDatePublished(date)
+        else:
+            rating_div = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
+            if rating_div and rating_div.find("div", {"itemprop": "datePublished"}):
+                claim.setDatePublished(rating_div.find("div", {"itemprop": "datePublished"}).get_text())
 
         # related links
         div_tag = parsed_claim_review_page.find("div", {"class": "article__text"})
@@ -117,7 +130,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             related_links.append(link['href'])
         claim.set_refered_links(related_links)
 
-        claim.setClaim(parsed_claim_review_page.find("div", {"class": "statement__text"}).text.strip())
+        claim.set_claim(parsed_claim_review_page.find("div", {"class": "statement__text"}).text.strip())
 
         tags = []
         about_widget = parsed_claim_review_page.find("div", {"class", "widget_about-article"})
@@ -130,4 +143,4 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         claim.set_tags(",".join(tags))
 
-        return claim
+        return [claim]

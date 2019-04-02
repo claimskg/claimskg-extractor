@@ -16,25 +16,29 @@ class Claim:
         self.url = ""
         self.tags = ""
         self.author = ""
-        self.datePublished = ""
-        self.sameAs = ""
+        self.date_published = ""
+        self.same_as = ""
         self.source_url = ""
         self.rating_value = ""
         self.worst_rating = ""
         self.best_rating = ""
         self.alternate_name = ""
+        self.claim_entities = ""
+        self.body_entities = ""
 
     def generate_dictionary(self):
         if isinstance(self.referred_links, list):
             self.referred_links = ",".join(self.referred_links)
         dictionary = {'rating_ratingValue': self.rating_value, 'rating_worstRating': self.worst_rating,
                       'rating_bestRating': self.best_rating, 'rating_alternateName': self.alternate_name,
-                      'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.datePublished,
-                      'creativeWork_author_sameAs': self.sameAs, 'claimReview_author_name': self.source,
+                      'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.date_published,
+                      'creativeWork_author_sameAs': self.same_as, 'claimReview_author_name': self.source,
                       'claimReview_author_url': self.source_url, 'claimReview_url': self.url,
                       'claimReview_claimReviewed': self.claim, 'claimReview_datePublished': self.date,
                       'extra_body': self.body.replace("\n", ""), 'extra_refered_links': self.referred_links,
-                      'extra_title': self.title, 'extra_tags': self.tags}
+                      'extra_title': self.title, 'extra_tags': self.tags,
+                      'extra_entities_claimReview_claimReviewed': self.claim_entities,
+                      'extra_entities_body': self.body_entities}
         return dictionary
 
     @classmethod
@@ -57,8 +61,8 @@ class Claim:
         claim.url = dictionary['claimReview_url']
         claim.tags = dictionary['extra_tags']
         claim.author = dictionary['creativeWork_author_name']
-        claim.datePublished = dictionary['creativeWork_datePublished']
-        claim.sameAs = dictionary['creativeWork_author_sameAs']
+        claim.date_published = dictionary['creativeWork_datePublished']
+        claim.same_as = dictionary['creativeWork_author_sameAs']
         claim.source_url = dictionary['claimReview_author_url']
         claim.rating_value = dictionary['rating_ratingValue']
         claim.worst_rating = dictionary['rating_worstRating']
@@ -85,54 +89,54 @@ class Claim:
             self.best_rating = str_
         return self
 
-    def setAlternateName(self, alternate_name):
-        alternate_name = str(alternate_name).replace('"', "")
+    def set_alternate_name(self, alternate_name):
+        self.alternate_name = str(alternate_name).replace('"', "").strip()
         # split sentence
 
-        if "." in alternate_name:
-            split_name = alternate_name.split(".")
+        if "." in self.alternate_name:
+            split_name = self.alternate_name.split(".")
             if len(split_name) > 0:
                 self.alternate_name = split_name[0]
 
         return self
 
-    def setSource(self, str_):
+    def set_source(self, str_):
         self.source = str_
         return self
 
-    def setAuthor(self, str_):
+    def set_author(self, str_):
         self.author = str_
         return self
 
     def setSameAs(self, str_):
-        self.sameAs = str_
+        self.same_as = str_
         return self
 
     def setDatePublished(self, str_):
-        self.datePublished = str_
+        self.date_published = str_
         return self
 
-    def setClaim(self, str_):
-        self.claim = str(str_)
+    def set_claim(self, str_):
+        self.claim = str(str_).strip()
         return self
 
     def setBody(self, str_):
-        self.body = str(str_)
+        self.body = str(str_).strip()
         return self
 
     def set_refered_links(self, str_):
         self.referred_links = str_
         return self
 
-    def setTitle(self, str_):
-        self.title = str(str_)
+    def set_title(self, str_):
+        self.title = str(str_).strip()
         return self
 
     def setDate(self, str_):
         self.date = str_
         return self
 
-    def setUrl(self, str_):
+    def set_url(self, str_):
         self.url = str(str_)
         return self
 
@@ -175,6 +179,6 @@ class Configuration:
         self.output = output
         return self
 
-    def setWebsite(self, website):
+    def set_website(self, website):
         self.website = website
         return self

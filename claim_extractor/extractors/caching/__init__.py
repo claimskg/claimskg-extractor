@@ -2,6 +2,7 @@ from typing import Dict, Optional
 
 import requests
 from redis import Redis
+from requests.packages import urllib3
 
 from claim_extractor import Claim
 
@@ -10,13 +11,20 @@ redis = Redis(decode_responses=True)
 
 def get(url: str, headers: Dict[str, str] = None, timeout: int = None):
     page_text = redis.get(url)
-    if not page_text:
-        result = requests.get(url, headers=headers, timeout=timeout)
-        if result.status_code < 400:
-            page_text = result.text
-            redis.set(url, page_text)
-        else:
-            return None
+    try:
+        if not page_text:
+            result = requests.get(url, headers=headers, timeout=timeout)
+            if result.status_code < 400:
+                page_text = result.text
+                redis.set(url, page_text)
+            else:
+                return None
+    except urllib3.exceptions.ReadTimeoutError:
+        page_text = None
+    except requests.exceptions.ReadTimeout:
+        page_text = None
+    except requests.exceptions.MissingSchema:
+        page_text = None
     return page_text
 
 

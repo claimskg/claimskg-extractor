@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
-
-import dateparser
-import pandas as pd
 import urllib.error
 import urllib.parse
 import urllib.request
-from bs4 import BeautifulSoup
-from claim_extractor import Claim
 
+import dateparser
+import pandas as pd
+from bs4 import BeautifulSoup
+
+from claim_extractor import Claim
 
 
 def get_all_claims(criteria):
@@ -55,8 +55,8 @@ def get_all_claims(criteria):
 
         for claim_element in soup.findAll("blockquote"):
             claim_ = Claim()
-            claim_.setUrl(url_complete)
-            claim_.setSource("aosfatos")
+            claim_.set_url(url_complete)
+            claim_.set_source("aosfatos")
 
             # date
             date_ = soup.find('p', {"class": "publish_date"})
@@ -66,7 +66,7 @@ def get_all_claims(criteria):
 
             # title
             title = soup.findAll("h1")
-            claim_.setTitle(title[1].text)
+            claim_.set_title(title[1].text)
 
             # body
             body = soup.find("article")
@@ -80,7 +80,7 @@ def get_all_claims(criteria):
             claim_.set_refered_links(related_links)
 
             # claim
-            claim_.setClaim(claim_element.get_text())
+            claim_.set_claim(claim_element.get_text())
             # if (claim_element.find_previous_sibling("figure") and claim_element.find_previous_sibling("figure").findAll(
             #         "figcaption")):
             # claim_.setConclusion(

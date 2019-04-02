@@ -1,5 +1,6 @@
+import re
 from abc import ABC, abstractmethod
-from typing import List, Set, Optional
+from typing import List, Set
 
 import pandas
 from bs4 import BeautifulSoup
@@ -8,6 +9,40 @@ from tqdm import tqdm
 from claim_extractor import Configuration, Claim
 from claim_extractor.extractors import caching
 from claim_extractor.extractors.caching import get_claim_from_cache, cache_claim
+
+MATCH_ALL = r'.*'
+
+
+def like(string):
+    """
+    Return a compiled regular expression that matches the given
+    string with any prefix and postfix, e.g. if string = "hello",
+    the returned regex matches r".*hello.*"
+    """
+    string_ = string
+    if not isinstance(string_, str):
+        string_ = str(string_)
+    regex = MATCH_ALL + re.escape(string_) + MATCH_ALL
+    return re.compile(regex, flags=re.DOTALL)
+
+
+def find_by_text(soup, text, tag, **kwargs):
+    """
+    Find the tag in soup that matches all provided kwargs, and contains the
+    text.
+
+    If no match is found, return None.
+    If more than one match is found, raise ValueError.
+    """
+    elements = soup.find_all(tag, **kwargs)
+    matches = []
+    for element in elements:
+        if element.find(text=like(text)):
+            matches.append(element)
+    if len(matches) == 0:
+        return None
+
+    return matches
 
 
 class FactCheckingSiteExtractor(ABC):
@@ -45,10 +80,15 @@ class FactCheckingSiteExtractor(ABC):
                     parsed_claim_review_page = BeautifulSoup(review_page, self.configuration.parser_engine)
                     claim = get_claim_from_cache(url)
                     if not claim:
-                        claim = self.extract_claim_and_review(parsed_claim_review_page, url)
-                    if claim:
+                        local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
+                        if len(local_claims) > 1:
+                            for claim in local_claims:
+                                claims.append(claim.generate_dictionary())
+                        elif len(local_claims) == 1 and local_claims[0]:
+                            claims.append(local_claims[0].generate_dictionary())
+                            cache_claim(local_claims[0])
+                    else:
                         claims.append(claim.generate_dictionary())
-                        cache_claim(claim)
 
         return pandas.DataFrame(claims)
 
@@ -77,5 +117,5 @@ class FactCheckingSiteExtractor(ABC):
         pass
 
     @abstractmethod
-    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> Optional[Claim]:
+    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         pass

@@ -1,9 +1,12 @@
+import urllib.error
+import urllib.parse
+import urllib.request
+
+import dateparser
 import pandas as pd
 from bs4 import BeautifulSoup
-import urllib.request, urllib.error, urllib.parse
-from claim_extractor import Claim
-import dateparser
 
+from claim_extractor import Claim
 
 ignore_urls = ['https://apublica.org/2017/07/truco-7-fatos-sobre-a-reforma-trabalhista/',
                'https://apublica.org/checagem/',
@@ -56,7 +59,7 @@ def get_all_claims(criteria):
                     contr = 1
                     continue
                 if contr == 1:
-                    claim_.setClaim(c.text)
+                    claim_.set_claim(c.text)
                     contr = 2
                     if c.find('img'):
                         claim_.setConclusion(c.img['alt'])
@@ -95,12 +98,12 @@ def get_soup(url):
 
 def new_claim(f_link, date, title, tags):
     claim_ = Claim()
-    claim_.setUrl(f_link)
-    claim_.setTitle(title)
+    claim_.set_url(f_link)
+    claim_.set_title(title)
     claim_.set_tags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
     claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
-    claim_.setSource("publica")
+    claim_.set_source("publica")
     claim_.setBody("")
     return claim_

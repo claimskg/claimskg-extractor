@@ -47,9 +47,9 @@ def get_all_claims(criteria):
             print(str(index) + "/" + str(len(list(urls_.keys()))) + " extracting " + str(url))
             index += 1
             claim_ = Claim()
-            claim_.setSource("mimikama")
+            claim_.set_source("mimikama")
             url_complete = url
-            claim_.setUrl(url_complete)
+            claim_.set_url(url_complete)
             page = urllib.request.urlopen(url_complete, timeout=5).read()
             soup = BeautifulSoup(page, "lxml")
             soup.prettify()
@@ -61,14 +61,14 @@ def get_all_claims(criteria):
 
             # title
             title = soup.find("h1", {"class": "entry-title"})
-            claim_.setTitle(title.text)
+            claim_.set_title(title.text)
 
             # claim
             # claim = soup.find('div', {"class": "td-post-content"}).find('h2')
             # if claim and claim.find_previous('strong'):
             #	claim_.setClaim(claim.find_previous('strong').get_text())
             # else:
-            claim_.setClaim(claim_.title)
+            claim_.set_claim(claim_.title)
 
             # date
             date = soup.find("time", {"class": "entry-date updated td-module-date"})

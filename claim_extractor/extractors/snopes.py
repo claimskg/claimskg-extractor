@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import List, Set, Optional
+from typing import List, Set
 
 import dateparser
 from bs4 import BeautifulSoup
@@ -63,17 +63,17 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 urls.add(url)
         return urls
 
-    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> Optional[Claim]:
+    def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         if url in url_blacklist:
-            return None
+            return []
 
         claim = Claim()
-        claim.setUrl(url)
-        claim.setSource("snopes")
+        claim.set_url(url)
+        claim.set_source("snopes")
 
         # title
         title = parsed_claim_review_page.find("h1", {"class": "card-title"})
-        claim.setTitle(title.text)
+        claim.set_title(title.text)
 
         # date
         date_str = ""
@@ -115,9 +115,9 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     if font_b:
                         font = font_b
                 if font and "This article has been moved" in font.text:
-                    return None
+                    return []
                 if font and "Topic:" in font.text:
-                    return None
+                    return []
                 if font and ("FACT CHECK" in font.text):
                     font.decompose()
                     in_origin = False
@@ -205,7 +205,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # author
         author = parsed_claim_review_page.find("a", {"class": "author"})
         if author:
-            claim.setAuthor(author.text)
+            claim.set_author(author.text)
 
         if not rating:
             rating = parsed_claim_review_page.find("span", {"class": "rating-name"})
@@ -219,7 +219,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if rating:
             claim.alternate_name = rating.text
         else:
-            return None
+            return []
         # related links
         div_tag = parsed_claim_review_page.find("div", {"class": "post-body-card"})
         related_links = []
@@ -235,7 +235,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             else:
                 claim_text = claim_p.text
 
-        claim.setClaim(claim_text)
+        claim.set_claim(claim_text)
 
         tags = []
 
@@ -243,4 +243,4 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             tags.append(tag["content"])
         claim.set_tags(", ".join(tags))
 
-        return claim
+        return [claim]
