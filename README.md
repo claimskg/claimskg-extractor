@@ -34,10 +34,12 @@ This version of the extractor doesn't annotate the description and claim with en
 
 ## Prerequisites
 This reimplementation runs on Python3.5+. 
+Redis is used for caching HTTP querries in order to allow faster resuming of extractions in case of failure and for a faster iterative development of new extractors. Please make sure to have a Redis instance (default parameters) running on the machine that runs the extractor. 
 Expected package dependencies are listed in the "requirements.txt" file for PIP, you need to run the following command to get dependencies:
 ```
 pip install -r requirements.txt
 ```
+
 
 ## Examples of usage
 
@@ -54,4 +56,11 @@ Export claims to a csv file named "output_got.csv".
 - limit of number of claims
 ```
     python Exporter.py --maxclaims 30
+```
+
+### Removing cached sites: 
+If you wish to remove the cache entries relative to a particular site, you can use the following command, where SITENAME should be replaced with the site's name as listed above.
+
+```shell 
+redis-cli --raw keys "http://*SITENAME*" | xargs redis-cli --raw del - 
 ```
