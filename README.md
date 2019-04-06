@@ -32,6 +32,10 @@ See the ClaimsKG dataset website for statistics (https://data.gesis.org/claimskg
 
 This version of the extractor doesn't annotate the description and claim with entities on its own, there is a consecutive step to add annotations to the CSV files with TagMe (see tagme fork in the claimskg project group). 
 
+## Normalizing truth values (ratings) across fact-checking websites
+
+Given the varied rating schemes used by the fact-checking websites, where individual labels often are hard to objectively apply or interpret, we apply a simple normalized rating scheme consisting of four basic categories that can be mapped in a consensual way to all existing rating schemes: TRUE, FALSE, MIXTURE, OTHER. We provide full correspondence tables here: https://goo.gl/Ykus98
+
 ## Prerequisites
 This reimplementation runs on Python3.5+. 
 Redis is used for caching HTTP querries in order to allow faster resuming of extractions in case of failure and for a faster iterative development of new extractors. Please make sure to have a Redis instance (default parameters) running on the machine that runs the extractor. 
