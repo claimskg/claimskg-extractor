@@ -121,27 +121,32 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 if font and ("FACT CHECK" in font.text):
                     font.decompose()
                     in_origin = False
-                    claim_text = para.text.strip()
+                    if claim_text is None:
+                        claim_text = para.text.strip()
                 elif font and ("Claim:" in font.text or "Virus" in font.text or "Joke" in font.text):
                     font.decompose()
                     in_origin = False
-                    claim_text = para.text.strip()
+                    if claim_text is None:
+                        claim_text = para.text.strip()
                 elif font and ("Glurge:" in font.text):
                     font.decompose()
                     in_origin = False
-                    claim_text = para.text.strip()
+                    if claim_text is None:
+                        claim_text = para.text.strip()
                     rating = DummyTag()
                     rating.text = "Glurge"
                 elif font and ("Scam:" in font.text):
                     font.decompose()
                     in_origin = False
-                    claim_text = para.text.strip()
+                    if claim_text is None:
+                        claim_text = para.text.strip()
                     rating = DummyTag()
                     rating.text = "Scam"
                 elif font and ("Legend:" in font.text):
                     font.decompose()
                     in_origin = False
-                    claim_text = para.text.strip()
+                    if claim_text is None:
+                        claim_text = para.text.strip()
                     rating = DummyTag()
                     rating.text = "Legend"
                 noindex = para.find("noindex")
@@ -205,7 +210,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # author
         author = parsed_claim_review_page.find("a", {"class": "author"})
         if author:
-            claim.set_author(author.text)
+            claim.review_author = author.text.strip()
 
         if not rating:
             rating = parsed_claim_review_page.find("span", {"class": "rating-name"})
@@ -235,7 +240,12 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             else:
                 claim_text = claim_p.text
 
-        claim.set_claim(claim_text)
+        claim_text = claim_text.strip()
+
+        if len(claim_text) > 3 and '\n' not in claim_text:
+            claim.set_claim(claim_text)
+        else:
+            return []
 
         tags = []
 

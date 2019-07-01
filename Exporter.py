@@ -30,41 +30,14 @@ def main(argv):
         return
 
     try:
-        opts, args = getopt.getopt(argv, "", (
-            "rdf=", "website=", "since=", "until=", "maxclaims=", "input=", "output=", "language=", "html",
-            "normalized",
-            "entity", "update-db"))
+        opts, args = getopt.getopt(argv, "", ("website=", "maxclaims="))
 
         for opt, arg in opts:
             if opt == '--website':
                 criteria.website = arg
 
-            elif opt == '--since':
-                criteria.since = arg
-
-            elif opt == '--until':
-                criteria.until = arg
-
-            elif opt == '--maxclaims':
+            if opt == '--maxclaims':
                 criteria.maxClaims = int(arg)
-
-            elif opt == '--language':
-                criteria.language = arg
-
-            elif opt == '--output':
-                criteria.output = arg
-
-            elif opt == '--entity':
-                criteria.entity_link = True
-
-            elif opt == '--update-db':
-                criteria.update_db = True
-
-            elif opt == '--input':
-                criteria.input = arg
-
-            elif opt == '--rdf':
-                criteria.rdf = arg
 
     except:
         print('Arguments parser error, try -h')

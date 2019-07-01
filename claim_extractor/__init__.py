@@ -25,6 +25,9 @@ class Claim:
         self.alternate_name = ""
         self.claim_entities = ""
         self.body_entities = ""
+        self.keyword_entities = ""
+        self.author_entities = ""
+        self.review_author = ""
 
     def generate_dictionary(self):
         if isinstance(self.referred_links, list):
@@ -35,10 +38,12 @@ class Claim:
                       'creativeWork_author_sameAs': self.same_as, 'claimReview_author_name': self.source,
                       'claimReview_author_url': self.source_url, 'claimReview_url': self.url,
                       'claimReview_claimReviewed': self.claim, 'claimReview_datePublished': self.date,
+                      'claimReview_source': self.source, 'claimReview_author': self.review_author,
                       'extra_body': self.body.replace("\n", ""), 'extra_refered_links': self.referred_links,
                       'extra_title': self.title, 'extra_tags': self.tags,
                       'extra_entities_claimReview_claimReviewed': self.claim_entities,
-                      'extra_entities_body': self.body_entities}
+                      'extra_entities_body': self.body_entities, 'extra_entities_keywords': self.keyword_entities,
+                      'extra_entities_author': self.author_entities}
         return dictionary
 
     @classmethod

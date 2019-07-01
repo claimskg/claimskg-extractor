@@ -101,19 +101,19 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.setDatePublished(date_published)
 
         # rating
-        claim.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
-        claim.setWorstRating(parse_wrong_json(json_, '"worstRating":', ","))
-        claim.set_best_rating(parse_wrong_json(json_, '"bestRating":', ","))
-        claim.set_alternate_name(parse_wrong_json(json_, '"alternateName":', ","))
-
+        if json_:
+            claim.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
+            claim.setWorstRating(parse_wrong_json(json_, '"worstRating":', ","))
+            claim.set_best_rating(parse_wrong_json(json_, '"bestRating":', ","))
+            claim.set_alternate_name(parse_wrong_json(json_, '"alternateName":', ","))
         # when there is no json
-        if not claim.alternate_name:
+        else:
             if parsed_claim_review_page.find("div", {"class": "fact-check-icon"}):
                 if parsed_claim_review_page.find("div", {"class": "fact-check-icon"}).find('img'):
                     claim_str = \
                         parsed_claim_review_page.find("div", {"class": "fact-check-icon"}).find('img')['alt'].split(
                             ":")[1]
-                    claim.alternate_name = claim_str
+                    claim.alternate_name = claim_str.strip()
 
         # body
         body = parsed_claim_review_page.find("div", {"class": "entry-content"})

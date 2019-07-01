@@ -113,6 +113,10 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # date published
         if statement_meta:
             meta_text = statement_meta.text
+            if "on" in meta_text:
+                meta_text = meta_text.split(" on ")[1]
+            if "in" in meta_text:
+                meta_text = meta_text.split(" in ")[0]
             if meta_text:
                 date = search_dates(meta_text)
                 if date:
