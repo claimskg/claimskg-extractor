@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import List, Set
+from typing import List
 
 import dateparser
 from bs4 import BeautifulSoup
@@ -27,7 +27,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return ["https://www.snopes.com/fact-check/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        next_link = parsed_listing_page.find("a", {"class", "btn-next btn btn-outline-primary"})['href']
+        next_link = parsed_listing_page.find("a", {"class", "btn-next btn"})['href']
         next_page_contents = caching.get(next_link, headers=self.headers, timeout=5)
         next_page = BeautifulSoup(next_page_contents, "lxml")
 
@@ -39,7 +39,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
-            -> Set[str]:
+            -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
         for page_number in tqdm(range(2, number_of_pages)):
             if 0 < self.configuration.maxClaims < len(urls):
@@ -51,16 +51,16 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
-        urls = set()
-        links = parsed_listing_page.findAll("article", {"class": "list-group-item media"})
+        urls = list()
+        links = parsed_listing_page.findAll("article", {"class": "media-wrapper"})
         for anchor in links:
-            anchor = anchor.find('a', {"class": "link"}, href=True)
+            anchor = anchor.find('a', href=True)
             url = str(anchor['href'])
             max_claims = self.configuration.maxClaims
             if 0 < max_claims <= len(urls):
                 break
             if url not in self.configuration.avoid_urls:
-                urls.add(url)
+                urls.append(url)
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
@@ -72,23 +72,24 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_source("snopes")
 
         # title
-        title = parsed_claim_review_page.find("h1", {"class": "card-title"})
+        article = parsed_claim_review_page.find("article", {'class', 'main-post'})
+        header = article.find("header")
+        title = header.find("h1")
         claim.set_title(title.text)
+
+        card = article.find("div", {"class": "content-wrapper card"})
+        card_body = card.find("div", {'class': 'content'})
 
         # date
         date_str = ""
         body_description = ""
         rating = None
         claim_text = None
-        date_ = parsed_claim_review_page.find('span', {"class": "date-published"})
+        date_ = parsed_claim_review_page.find('span', {"class": "date date-published"})
         # print date_["content"]
         if date_:
             date_str = dateparser.parse(date_.text).strftime("%Y-%m-%d")
         else:  # post-body-card
-            card_body = parsed_claim_review_page.find("main").find("article").find("div",
-                                                                                   {"class": "post-body-card"}).find(
-                "div", {"class": "card-body"})
-
             # Happens sometimes that the rating is embedded deep into a table...
             rating_table = card_body.findAll("table")
             if rating_table and len(rating_table) > 0:
@@ -104,9 +105,16 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                             status = strong
                         rating = status
 
+            tbody = card.find("tbody")
+            if tbody:
+                card_body = tbody
+
             paras = card_body.findAll("p")
             in_origin = False
+            previous_was_claim = False
+            para_index = -1
             for para in paras:
+                para_index += 1
                 font = para.find("font")
                 if not font:
                     font = para.find("span")
@@ -114,49 +122,91 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     font_b = font.find("b")
                     if font_b:
                         font = font_b
-                if font and "This article has been moved" in font.text:
-                    return []
-                if font and "Topic:" in font.text:
-                    return []
-                if font and ("FACT CHECK" in font.text):
-                    font.decompose()
-                    in_origin = False
-                    if claim_text is None:
-                        claim_text = para.text.strip()
-                elif font and ("Claim:" in font.text or "Virus" in font.text or "Joke" in font.text):
-                    font.decompose()
-                    in_origin = False
-                    if claim_text is None:
-                        claim_text = para.text.strip()
-                elif font and ("Glurge:" in font.text):
-                    font.decompose()
-                    in_origin = False
-                    if claim_text is None:
-                        claim_text = para.text.strip()
-                    rating = DummyTag()
-                    rating.text = "Glurge"
-                elif font and ("Scam:" in font.text):
-                    font.decompose()
-                    in_origin = False
-                    if claim_text is None:
-                        claim_text = para.text.strip()
-                    rating = DummyTag()
-                    rating.text = "Scam"
-                elif font and ("Legend:" in font.text):
-                    font.decompose()
-                    in_origin = False
-                    if claim_text is None:
-                        claim_text = para.text.strip()
-                    rating = DummyTag()
-                    rating.text = "Legend"
-                noindex = para.find("noindex")
-                if noindex:
-                    fonts = noindex.findAll("font")
+
+                if not previous_was_claim:
+                    if font and "This article has been moved" in font.text:
+                        return []
+                    if font and "Topic:" in font.text:
+                        return []
+                    if font and ("FACT CHECK" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                    elif font and ("Claim" in font.text):
+                        previous_was_claim = True
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                    elif font and ("Virus" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Virus"
+                    elif font and ("Joke" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Joke"
+                    elif font and ("Glurge" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Glurge"
+                    elif font and ("Scam:" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Scam"
+                    elif font and ("Phishing bait" in font.text or "Phish Bait" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Phishing bait"
+                    elif font and ("Virus name" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Virus"
+                    elif font and ("Legend" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Legend"
+                    elif font and ("Rumor" in font.text):
+                        font.decompose()
+                        in_origin = False
+                        if claim_text is None:
+                            claim_text = para.text.strip()
+                        rating = DummyTag()
+                        rating.text = "Rumor"
+                elif previous_was_claim:
+                    previous_was_claim = False
+                    noindex = para.find("noindex")
+                    if noindex:
+                        para = noindex
+
+                    fonts = para.findAll("font")
                     title_font_tag = None
                     span = None
                     if len(fonts) > 0:
                         title_font_tag = fonts[0]
-                    elif title_font_tag:
+                    if title_font_tag:
                         b_in_title = title_font_tag.find("b")
                         if b_in_title:
                             title_font_tag = b_in_title
@@ -168,8 +218,14 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                             else:
                                 rating = fonts[1]
                     else:
-                        span = noindex.find("span")
-                        rating = span
+                        span = para.find("span")
+                        if span:
+                            span = span.find("span")
+                        if span and "Example" not in span.text:
+                            b = span.find("b")
+                            if b:
+                                span = b
+                            rating = span
 
                 if font and ("Origin:" in font.text or "Origins:" in font.text):
                     font.decompose()
@@ -188,33 +244,41 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.setDatePublished(date_str)
 
         # body
-        body = parsed_claim_review_page.find("div", {"class": "post-body-card"})
-        card = body.find("div", {"class": "card-body"})
-        ads = card.findAll("div", {"class": "creative"})
+
+        ads = card_body.findAll("div")
         for ad in ads:
             ad.decompose()
 
-        ads = card.findAll("div", {"class": "snopes-bt"})
+        ads = card_body.findAll("div", {"class": "snopes-bt"})
         for ad in ads:
             ad.decompose()
 
         text = ""
-        contents = card.findChildren()
+        contents = card_body.findChildren()
         for child in contents:
             text += child.text
 
-        body_description = body.get_text()
-
-        claim.setBody(body_description)
+        claim.setBody(text)
 
         # author
         author = parsed_claim_review_page.find("a", {"class": "author"})
         if author:
             claim.review_author = author.text.strip()
 
+        rating_div = None
         if not rating:
             rating = parsed_claim_review_page.find("span", {"class": "rating-name"})
+        if not rating:
+            rating_div = parsed_claim_review_page.find("div", {"class": "media rating"})
+        if not rating:
+            rating_div = parsed_claim_review_page.find("div", {"class": "claim-old"})
+        if not rating and not rating_div:
+            rating_div = parsed_claim_review_page.find("div", {"class": "rating-wrapper card"})
+        if rating_div:
+            rating = rating_div.find("h5")
 
+        if rating_div:
+            rating = rating_div.find("span")
         if not rating:
             # Oldest page format
             rating = parsed_claim_review_page.find("font", {"class", "status_color"})
@@ -226,23 +290,27 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         else:
             return []
         # related links
-        div_tag = parsed_claim_review_page.find("div", {"class": "post-body-card"})
         related_links = []
-        for link in div_tag.findAll('a', href=True):
+        for link in card_body.findAll('a', href=True):
             related_links.append(link['href'])
         claim.set_refered_links(related_links)
 
         if not claim_text:
             claim_p = parsed_claim_review_page.find('p', {"class": "claim"})
             if not claim_p:
-                claim_text = div_tag.text
+                claim_div = parsed_claim_review_page.find('div', {"class": "claim"})
+                if not claim_div:
+                    print("Claim text cannot be found!")
+                    claim_text = ""
+                else:
+                    claim_text = claim_div.find("p").text
 
             else:
                 claim_text = claim_p.text
+        else:
+            claim_text = claim_text.strip()
 
-        claim_text = claim_text.strip()
-
-        if len(claim_text) > 3 and '\n' not in claim_text:
+        if len(claim_text) > 3 and len(claim_text.split("\n")) < 5:
             claim.set_claim(claim_text)
         else:
             return []

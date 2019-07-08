@@ -58,6 +58,7 @@ class FactCheckingSiteExtractor(ABC):
         self.configuration = configuration
         self.ignore_urls = configuration.avoid_urls
         self.language = language
+        self.failed_log = open(self.__class__.__name__ + "_extraction_failed.log", "w")
 
     def get_all_claims(self):
         claims = []  # type : List[Claim]
@@ -87,9 +88,12 @@ class FactCheckingSiteExtractor(ABC):
                         elif len(local_claims) == 1 and local_claims[0]:
                             claims.append(local_claims[0].generate_dictionary())
                             cache_claim(local_claims[0])
+                        else:
+                            self.failed_log.write(url + "\n")
+                            self.failed_log.flush()
                     else:
                         claims.append(claim.generate_dictionary())
-
+        self.failed_log.close()
         return pandas.DataFrame(claims)
 
     @abstractmethod
@@ -113,7 +117,7 @@ class FactCheckingSiteExtractor(ABC):
 
     @abstractmethod
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
-            -> Set[str]:
+            -> List[str]:
         pass
 
     @abstractmethod
