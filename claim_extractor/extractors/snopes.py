@@ -47,7 +47,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             url = listing_page_url + "/page/" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls = set.union(urls, self.extract_urls(current_parsed_listing_page))
+            urls = urls + self.extract_urls(current_parsed_listing_page)
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
@@ -82,166 +82,12 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # date
         date_str = ""
-        body_description = ""
         rating = None
         claim_text = None
         date_ = parsed_claim_review_page.find('span', {"class": "date date-published"})
         # print date_["content"]
         if date_:
             date_str = dateparser.parse(date_.text).strftime("%Y-%m-%d")
-        else:  # post-body-card
-            # Happens sometimes that the rating is embedded deep into a table...
-            rating_table = card_body.findAll("table")
-            if rating_table and len(rating_table) > 0:
-                tds = rating_table[0].findAll("td")
-                if len(tds) > 1:
-                    status = tds[1].find("font")
-                    if status:
-                        b = status.find("b")
-                        if b:
-                            status = b
-                        strong = status.find("strong")
-                        if strong:
-                            status = strong
-                        rating = status
-
-            tbody = card.find("tbody")
-            if tbody:
-                card_body = tbody
-
-            paras = card_body.findAll("p")
-            in_origin = False
-            previous_was_claim = False
-            para_index = -1
-            for para in paras:
-                para_index += 1
-                font = para.find("font")
-                if not font:
-                    font = para.find("span")
-                if font:
-                    font_b = font.find("b")
-                    if font_b:
-                        font = font_b
-
-                if not previous_was_claim:
-                    if font and "This article has been moved" in font.text:
-                        return []
-                    if font and "Topic:" in font.text:
-                        return []
-                    if font and ("FACT CHECK" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                    elif font and ("Claim" in font.text):
-                        previous_was_claim = True
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                    elif font and ("Virus" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Virus"
-                    elif font and ("Joke" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Joke"
-                    elif font and ("Glurge" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Glurge"
-                    elif font and ("Scam:" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Scam"
-                    elif font and ("Phishing bait" in font.text or "Phish Bait" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Phishing bait"
-                    elif font and ("Virus name" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Virus"
-                    elif font and ("Legend" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Legend"
-                    elif font and ("Rumor" in font.text):
-                        font.decompose()
-                        in_origin = False
-                        if claim_text is None:
-                            claim_text = para.text.strip()
-                        rating = DummyTag()
-                        rating.text = "Rumor"
-                elif previous_was_claim:
-                    previous_was_claim = False
-                    noindex = para.find("noindex")
-                    if noindex:
-                        para = noindex
-
-                    fonts = para.findAll("font")
-                    title_font_tag = None
-                    span = None
-                    if len(fonts) > 0:
-                        title_font_tag = fonts[0]
-                    if title_font_tag:
-                        b_in_title = title_font_tag.find("b")
-                        if b_in_title:
-                            title_font_tag = b_in_title
-
-                        if "Status:" in title_font_tag.text:
-                            b = fonts[1].find("b")
-                            if b:
-                                rating = b.find("i")
-                            else:
-                                rating = fonts[1]
-                    else:
-                        span = para.find("span")
-                        if span:
-                            span = span.find("span")
-                        if span and "Example" not in span.text:
-                            b = span.find("b")
-                            if b:
-                                span = b
-                            rating = span
-
-                if font and ("Origin:" in font.text or "Origins:" in font.text):
-                    font.decompose()
-                    in_origin = True
-                    body_description += para.text
-                if font and ("Last updated:" in font.text):
-                    in_origin = False
-                    font.decompose()
-                    parsed_date = dateparser.parse(para.text.strip())
-                    if parsed_date:
-                        date_str = parsed_date.strftime("%Y-%m-%d")
-
-                if in_origin:
-                    body_description += para.text
-        claim.setDate(date_str)
-        claim.setDatePublished(date_str)
 
         # body
 
@@ -258,42 +104,34 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         for child in contents:
             text += child.text
 
-        claim.setBody(text)
+        body_description = text
 
         # author
         author = parsed_claim_review_page.find("a", {"class": "author"})
-        if author:
-            claim.review_author = author.text.strip()
 
         rating_div = None
         if not rating:
             rating = parsed_claim_review_page.find("span", {"class": "rating-name"})
         if not rating:
             rating_div = parsed_claim_review_page.find("div", {"class": "media rating"})
-        if not rating:
+        if not rating and not rating_div:
             rating_div = parsed_claim_review_page.find("div", {"class": "claim-old"})
         if not rating and not rating_div:
             rating_div = parsed_claim_review_page.find("div", {"class": "rating-wrapper card"})
         if rating_div:
             rating = rating_div.find("h5")
-
-        if rating_div:
-            rating = rating_div.find("span")
+            if not rating:
+                rating = rating_div.find("span")
         if not rating:
             # Oldest page format
             rating = parsed_claim_review_page.find("font", {"class", "status_color"})
             if rating:
                 rating = rating.find("b")
 
-        if rating:
-            claim.alternate_name = rating.text
-        else:
-            return []
         # related links
         related_links = []
         for link in card_body.findAll('a', href=True):
             related_links.append(link['href'])
-        claim.set_refered_links(related_links)
 
         if not claim_text:
             claim_p = parsed_claim_review_page.find('p', {"class": "claim"})
@@ -310,15 +148,187 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         else:
             claim_text = claim_text.strip()
 
+        tags = []
+        for tag in parsed_claim_review_page.findAll('meta', {"property": "article:tag"}):
+            tags.append(tag["content"])
+
+        if not date_str or not claim_text or not body_description or not rating:
+            claim_text, body_description, date_str, rating = handle_legacy_page_structures(card_body, claim_text,
+                                                                                           body_description,
+                                                                                           date_str, rating)
+            print(claim_text, body_description, date_str, rating)
+
+        claim.setDatePublished(date_str)
+        claim.setBody(body_description)
+        claim.set_tags(", ".join(tags))
+        claim.set_refered_links(related_links)
+
+        if author:
+            claim.review_author = author.text.strip()
+
         if len(claim_text) > 3 and len(claim_text.split("\n")) < 5:
             claim.set_claim(claim_text)
         else:
             return []
 
-        tags = []
-
-        for tag in parsed_claim_review_page.findAll('meta', {"property": "article:tag"}):
-            tags.append(tag["content"])
-        claim.set_tags(", ".join(tags))
+        if rating:
+            claim.set_alternate_name(rating.text)
+        else:
+            return []
 
         return [claim]
+
+
+def handle_legacy_page_structures(card_body, claim_text, body_description, date_str, rating):
+    # Happens sometimes that the rating is embedded deep into a table...
+    rating_table = card_body.findAll("table")
+    if rating_table and len(rating_table) > 0:
+        tds = rating_table[0].findAll("td")
+        if len(tds) > 1:
+            status = tds[1].find("font")
+            if status:
+                b = status.find("b")
+                if b:
+                    status = b
+                strong = status.find("strong")
+                if strong:
+                    status = strong
+                rating = status
+
+    tbody = card_body.find("tbody")
+    if tbody:
+        card_body = tbody
+
+    paras = card_body.findAll("p")
+    in_origin = False
+    previous_was_claim = False
+    para_index = -1
+    for para in paras:
+        para_index += 1
+        font = para.find("font")
+        if not font:
+            font = para.find("span")
+        if font:
+            font_b = font.find("b")
+            if font_b:
+                font = font_b
+
+        if not previous_was_claim:
+            if font and "This article has been moved" in font.text:
+                return []
+            if font and "Topic:" in font.text:
+                return []
+            if font and ("FACT CHECK" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+            elif font and ("Claim" in font.text):
+                previous_was_claim = True
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+            elif font and ("Virus" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Virus"
+            elif font and ("Joke" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Joke"
+            elif font and ("Glurge" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Glurge"
+            elif font and ("Scam:" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Scam"
+            elif font and ("Phishing bait" in font.text or "Phish Bait" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Phishing bait"
+            elif font and ("Virus name" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Virus"
+            elif font and ("Legend" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Legend"
+            elif font and ("Rumor" in font.text):
+                font.decompose()
+                in_origin = False
+                if claim_text is None:
+                    claim_text = para.text.strip()
+                rating = DummyTag()
+                rating.text = "Rumor"
+        elif previous_was_claim:
+            previous_was_claim = False
+            noindex = para.find("noindex")
+            if noindex:
+                para = noindex
+
+            fonts = para.findAll("font")
+            title_font_tag = None
+            span = None
+            if len(fonts) > 0:
+                title_font_tag = fonts[0]
+            if title_font_tag:
+                b_in_title = title_font_tag.find("b")
+                if b_in_title:
+                    title_font_tag = b_in_title
+
+                if "Status:" in title_font_tag.text:
+                    b = fonts[1].find("b")
+                    if b:
+                        rating = b.find("i")
+                    else:
+                        rating = fonts[1]
+            else:
+                span = para.find("span")
+                if span:
+                    span = span.find("span")
+                if span and "Example" not in span.text:
+                    b = span.find("b")
+                    if b:
+                        span = b
+                    rating = span
+
+        if font and ("Origin:" in font.text or "Origins:" in font.text):
+            font.decompose()
+            in_origin = True
+            body_description += para.text
+        if font and ("Last updated:" in font.text):
+            in_origin = False
+            font.decompose()
+            parsed_date = dateparser.parse(para.text.strip())
+            if parsed_date:
+                date_str = parsed_date.strftime("%Y-%m-%d")
+
+        if in_origin:
+            body_description += para.text
+
+    return claim_text, body_description, date_str, rating
