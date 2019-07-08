@@ -46,7 +46,7 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             page = caching.get(url, headers=self.headers, timeout=5)
             if page:
                 current_parsed_listing_page = BeautifulSoup(page, "lxml")
-                urls = set.union(urls, self.extract_urls(current_parsed_listing_page))
+                urls +=self.extract_urls(current_parsed_listing_page)
             else:
                 break
 

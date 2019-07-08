@@ -31,7 +31,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             url = "https://www.truthorfiction.com/category/fact-checks/page/" + str(page_number) + "/"
             page = caching.get(url, headers=self.headers, timeout=20)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls = set.union(urls, self.extract_urls(current_parsed_listing_page))
+            urls += self.extract_urls(current_parsed_listing_page)
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
