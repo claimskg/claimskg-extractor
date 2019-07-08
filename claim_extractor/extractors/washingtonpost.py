@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import List, Set
+from typing import List
 
 import pandas as pd
 import requests
@@ -128,7 +128,7 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return count
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
-            -> Set[str]:
+            -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
 
         for page_number in tqdm(range(2, number_of_pages)):
@@ -143,7 +143,7 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
-        urls = set()
+        urls = list()
         links = parsed_listing_page.find('articles').findAll('a', href=True)
         for anchor in links:
             url = "https://checkyourfact.com" + str(anchor['href'])
@@ -151,7 +151,7 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if 0 < max_claims <= len(urls):
                 break
             if url not in self.configuration.avoid_urls:
-                urls.add(url)
+                urls.append(url)
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:

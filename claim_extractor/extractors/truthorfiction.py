@@ -25,7 +25,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
-            -> Set[str]:
+            -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
         for page_number in tqdm(range(2, number_of_pages)):
             url = "https://www.truthorfiction.com/category/fact-checks/page/" + str(page_number) + "/"
@@ -35,7 +35,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
-        urls = set()
+        urls = list()
         links = parsed_listing_page.findAll("a", {"class": "tt-post-title"}, href=True)
         for anchor in links:
             url = str(anchor['href'])
@@ -43,7 +43,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if 0 < max_claims <= len(urls):
                 break
             if url not in self.configuration.avoid_urls:
-                urls.add(url)
+                urls.append(url)
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:

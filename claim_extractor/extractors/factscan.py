@@ -26,7 +26,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
-            -> Set[str]:
+            -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
         for page_number in tqdm(range(2, number_of_pages)):
             url = "http://factscan.ca/page/" + str(page_number) + "/"
@@ -36,7 +36,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
-        urls = set()
+        urls = list()
         links = parsed_listing_page.findAll("h1", {"class": "post-title entry-title home-feed-title"})
         for anchor in links:
             anchor = anchor.find('a', href=True)
@@ -45,7 +45,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if 0 < max_claims <= len(urls):
                 break
             if url not in self.configuration.avoid_urls:
-                urls.add(url)
+                urls.append(url)
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
