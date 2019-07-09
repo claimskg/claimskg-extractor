@@ -86,6 +86,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim_text = None
         date_ = parsed_claim_review_page.find('span', {"class": "date date-published"})
         # print date_["content"]
+        if not date_:
+            date_ = parsed_claim_review_page.find('span', {"class": "date date-last-update"})
         if date_:
             date_str = dateparser.parse(date_.text).strftime("%Y-%m-%d")
 
@@ -138,7 +140,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if not claim_p:
                 claim_div = parsed_claim_review_page.find('div', {"class": "claim"})
                 if not claim_div:
-                    print("Claim text cannot be found!")
+                    claim_div = parsed_claim_review_page.find('div', {"class": "claim-old"})
+                if not claim_div:
                     claim_text = ""
                 else:
                     claim_text = claim_div.find("p").text
@@ -156,8 +159,6 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim_text, body_description, date_str, rating = handle_legacy_page_structures(card_body, claim_text,
                                                                                            body_description,
                                                                                            date_str, rating)
-            print(claim_text, body_description, date_str, rating)
-
         claim.setDatePublished(date_str)
         claim.setBody(body_description)
         claim.set_tags(", ".join(tags))
@@ -169,11 +170,24 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if len(claim_text) > 3 and len(claim_text.split("\n")) < 5:
             claim.set_claim(claim_text)
         else:
-            return []
+            if header:
+                h1 = header.find("h1")
+                claim_text = h1.text
+                if claim_text:
+                    claim.set_claim(claim_text)
+                else:
+                    print("Claim text cannot be found!")
+                    return []
+
+
+            else:
+                print("Claim text cannot be found!")
+                return []
 
         if rating:
             claim.set_alternate_name(rating.text)
         else:
+            print("No rating found!")
             return []
 
         return [claim]
@@ -215,73 +229,73 @@ def handle_legacy_page_structures(card_body, claim_text, body_description, date_
 
         if not previous_was_claim:
             if font and "This article has been moved" in font.text:
-                return []
+                rating = None
             if font and "Topic:" in font.text:
-                return []
+                rating = None
             if font and ("FACT CHECK" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
             elif font and ("Claim" in font.text):
                 previous_was_claim = True
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
             elif font and ("Virus" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Virus"
             elif font and ("Joke" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Joke"
             elif font and ("Glurge" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Glurge"
             elif font and ("Scam:" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Scam"
             elif font and ("Phishing bait" in font.text or "Phish Bait" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Phishing bait"
             elif font and ("Virus name" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Virus"
             elif font and ("Legend" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Legend"
             elif font and ("Rumor" in font.text):
                 font.decompose()
                 in_origin = False
-                if claim_text is None:
+                if claim_text is None or len(claim_text) == 0:
                     claim_text = para.text.strip()
                 rating = DummyTag()
                 rating.text = "Rumor"

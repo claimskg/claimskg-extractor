@@ -1,6 +1,6 @@
 import re
 from abc import ABC, abstractmethod
-from typing import List, Set
+from typing import List
 
 import pandas
 from bs4 import BeautifulSoup
@@ -76,24 +76,28 @@ class FactCheckingSiteExtractor(ABC):
 
             print("Extracting claims listed in " + listing_page_url)
             for url in tqdm(urls):
-                review_page = caching.get(url, headers=self.headers, timeout=6)
-                if review_page:
-                    parsed_claim_review_page = BeautifulSoup(review_page, self.configuration.parser_engine)
-                    claim = get_claim_from_cache(url)
-                    if not claim:
-                        local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
-                        if len(local_claims) > 1:
-                            for claim in local_claims:
+                try:
+                    if "http" in url:
+                        review_page = caching.get(url, headers=self.headers, timeout=6)
+                        if review_page:
+                            parsed_claim_review_page = BeautifulSoup(review_page, self.configuration.parser_engine)
+                            claim = get_claim_from_cache(url)
+                            if not claim:
+                                local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
+                                if len(local_claims) > 1:
+                                    for claim in local_claims:
+                                        claims.append(claim.generate_dictionary())
+                                elif len(local_claims) == 1 and local_claims[0]:
+                                    claims.append(local_claims[0].generate_dictionary())
+                                    cache_claim(local_claims[0])
+                                else:
+                                    self.failed_log.write(url + "\n")
+                                    self.failed_log.flush()
+                            else:
                                 claims.append(claim.generate_dictionary())
-                        elif len(local_claims) == 1 and local_claims[0]:
-                            claims.append(local_claims[0].generate_dictionary())
-                            cache_claim(local_claims[0])
-                        else:
-                            self.failed_log.write(url + "\n")
-                            self.failed_log.flush()
-                    else:
-                        claims.append(claim.generate_dictionary())
-        self.failed_log.close()
+                except ConnectionError:
+                    pass
+            self.failed_log.close()
         return pandas.DataFrame(claims)
 
     @abstractmethod
