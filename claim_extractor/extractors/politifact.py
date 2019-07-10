@@ -138,13 +138,14 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         tags = []
         about_widget = parsed_claim_review_page.find("div", {"class", "widget_about-article"})
-        about_widget_contents = about_widget.find("div", {"class", "widget__content"})
-        for p in about_widget_contents.findAll("p"):
-            text = p.text
-            if "Subjects:" in text:
-                for subject in p.findAll("a"):
-                    tags.append(subject.text)
+        if about_widget:
+            about_widget_contents = about_widget.find("div", {"class", "widget__content"})
+            for p in about_widget_contents.findAll("p"):
+                text = p.text
+                if "Subjects:" in text:
+                    for subject in p.findAll("a"):
+                        tags.append(subject.text)
 
-        claim.set_tags(",".join(tags))
+            claim.set_tags(",".join(tags))
 
         return [claim]

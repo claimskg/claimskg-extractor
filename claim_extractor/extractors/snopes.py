@@ -181,13 +181,11 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
 
             else:
-                print("Claim text cannot be found!")
                 return []
 
         if rating:
             claim.set_alternate_name(rating.text)
         else:
-            print("No rating found!")
             return []
 
         return [claim]
