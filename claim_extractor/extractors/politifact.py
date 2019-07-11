@@ -65,7 +65,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         date = parsed_claim_review_page.find('div', {"class": "widget__content"}).find("p")
         if date:
             date_str = search_dates(date.text)[0][1].strftime("%Y-%m-%d")
-            claim.setDate(date_str)
+            claim.set_date(date_str)
 
         # rating
         rating_div = parsed_claim_review_page.find("div", {"itemprop": "reviewRating"})
@@ -91,7 +91,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # body
         body = parsed_claim_review_page.find("div", {"class": "article__text"})
-        claim.setBody(body.get_text())
+        claim.set_body(body.get_text())
 
         # author
         statement_meta = parsed_claim_review_page.find("p", {"class": "statement__meta"})

@@ -79,7 +79,7 @@ def get_all_claims(criteria):
         if date_:
             date_str = search_dates(date_['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
             # print date_str
-            claim_.setDate(date_str)
+            claim_.set_date(date_str)
         # print claim_.date
 
         # rating
@@ -100,11 +100,11 @@ def get_all_claims(criteria):
 
         date_ = soup.find("time", {"class": "datetime"})
         if date_:
-            claim_.setDate(date_.get_text())
+            claim_.set_date(date_.get_text())
 
         # body
         body = soup.find("div", {"id": "main"})
-        claim_.setBody(body.get_text())
+        claim_.set_body(body.get_text())
 
         # author
         author = soup.find("div", {"class": "sharethefacts-speaker-name"})
@@ -189,7 +189,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         global_date_str = ""
         if date:
             global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
-            claim.setDate(global_date_str)
+            claim.set_date(global_date_str)
 
         # rating
         global_truth_rating = ""
@@ -214,7 +214,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         date = parsed_claim_review_page.find("time", {"class": "datetime"})
         if date:
-            claim.setDate(date.get_text())
+            claim.set_date(date.get_text())
 
         tags = []
 
@@ -240,7 +240,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
             # First we extract the bit of text common to everything until we meed a sub-section
             body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
-            claim.setBody(body_text)
+            claim.set_body(body_text)
             claim.set_refered_links(links)
 
             while current_index < len(entry_contents):
@@ -260,9 +260,9 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 inline_claim.set_claim(claim_text)
                 inline_claim.set_alternate_name(inline_rating)
                 inline_claim.set_refered_links(",".join(inline_links))
-                inline_claim.setBody(inline_body_text)
+                inline_claim.set_body(inline_body_text)
                 inline_claim.set_tags(", ".join(tags))
-                inline_claim.setDate(global_date_str)
+                inline_claim.set_date(global_date_str)
                 inline_claim.set_url(url)
                 if author:
                     inline_claim.set_author(author.get_text())
@@ -275,7 +275,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
             # First we extract the bit of text common to everything until we meed a sub-section
             body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
-            claim.setBody(body_text)
+            claim.set_body(body_text)
             claim.set_refered_links(links)
 
             while current_index < len(entry_contents):
@@ -295,9 +295,9 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 inline_claim.set_claim(claim_text)
                 inline_claim.set_alternate_name(inline_rating)
                 inline_claim.set_refered_links(",".join(inline_links))
-                inline_claim.setBody(inline_body_text)
+                inline_claim.set_body(inline_body_text)
                 inline_claim.set_tags(", ".join(tags))
-                inline_claim.setDate(global_date_str)
+                inline_claim.set_date(global_date_str)
                 inline_claim.set_url(url)
                 if author:
                     inline_claim.set_author(author.get_text())
@@ -308,7 +308,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         else:
             # body
             body = parsed_claim_review_page.find("div", {"id": "main"})
-            claim.setBody(body.get_text())
+            claim.set_body(body.get_text())
 
             # related links
             divTag = parsed_claim_review_page.find("div", {"id": "main"})

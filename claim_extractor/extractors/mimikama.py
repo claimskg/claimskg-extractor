@@ -75,7 +75,7 @@ def get_all_claims(criteria):
             # print date
 
             # print (search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
-            claim_.setDate(search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
+            claim_.set_date(search_dates(date.get_text())[0][1].strftime("%Y-%m-%d"))
 
             # related links
             divTag = soup.find("div", {"class": "td-post-content"})
@@ -85,7 +85,7 @@ def get_all_claims(criteria):
             claim_.set_refered_links(related_links)
 
             body = soup.find("div", {"class": "td-post-content"})
-            claim_.setBody(body.get_text())
+            claim_.set_body(body.get_text())
 
             claims.append(claim_.generate_dictionary())
         except:

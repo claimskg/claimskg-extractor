@@ -62,7 +62,7 @@ def get_all_claims(criteria):
             date_ = soup.find('p', {"class": "publish_date"})
             if date_:
                 date_str = date_.get_text().replace("\n", "").replace("  ", "").split(",")[0]
-                claim_.setDate(dateparser.parse(date_str).strftime("%Y-%m-%d"))
+                claim_.set_date(dateparser.parse(date_str).strftime("%Y-%m-%d"))
 
             # title
             title = soup.findAll("h1")
@@ -70,7 +70,7 @@ def get_all_claims(criteria):
 
             # body
             body = soup.find("article")
-            claim_.setBody(body.get_text().replace("\n", "").replace("TwitterFacebookE-mailWhatsApp", ""))
+            claim_.set_body(body.get_text().replace("\n", "").replace("TwitterFacebookE-mailWhatsApp", ""))
 
             # related links
             divTag = soup.find("article").find("hr")

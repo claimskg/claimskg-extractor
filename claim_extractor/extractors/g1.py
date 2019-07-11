@@ -70,12 +70,12 @@ def get_all_claims(criteria):
             date_ = soup.find('time', {"itemprop": "datePublished"})
             if date_:
                 date_str = date_.get_text().split(" ")[1]
-                claim_.setDate(dateparser.parse(date_str, settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
+                claim_.set_date(dateparser.parse(date_str, settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
             # print claim_.date
 
             # body
             body = soup.find("article")
-            claim_.setBody(body.get_text().replace("\n", "").replace("TwitterFacebookE-mailWhatsApp", ""))
+            claim_.set_body(body.get_text().replace("\n", "").replace("TwitterFacebookE-mailWhatsApp", ""))
 
             # related links
             divTag = soup.find("article", {"itemprop": "articleBody"})

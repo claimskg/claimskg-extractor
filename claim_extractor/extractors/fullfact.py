@@ -66,11 +66,11 @@ def get_all_claims(criteria):
 
         # date
         date = soup.find("p", {"class": "hidden-xs hidden-sm date updated"})
-        claim_.setDate(dateparser.parse(date.get_text().replace("Published:", "")).strftime("%Y-%m-%d"))
+        claim_.set_date(dateparser.parse(date.get_text().replace("Published:", "")).strftime("%Y-%m-%d"))
 
         # body
         body = soup.find("div", {"class": "article-post-content"})
-        claim_.setBody(body.get_text())
+        claim_.set_body(body.get_text())
 
         # related links
         divTag = soup.find("div", {"class": "row"})

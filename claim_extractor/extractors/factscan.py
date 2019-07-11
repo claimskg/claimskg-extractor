@@ -76,7 +76,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         date = parsed_claim_review_page.find('meta', {"property": "article:published_time"})
         if date:
             date_str = search_dates(date['content'].split("T")[0])[0][1].strftime("%Y-%m-%d")
-            claim.setDate(date_str)
+            claim.set_date(date_str)
 
         # Creative work date
 
@@ -117,7 +117,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # body
         body = parsed_claim_review_page.find("div", {"class": "entry-content"})
-        claim.setBody(body.get_text())
+        claim.set_body(body.get_text())
 
         # author
         author = parsed_claim_review_page.find("div", {"class": "sharethefacts-speaker-name"})

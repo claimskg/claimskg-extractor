@@ -159,8 +159,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim_text, body_description, date_str, rating = handle_legacy_page_structures(card_body, claim_text,
                                                                                            body_description,
                                                                                            date_str, rating)
-        claim.setDatePublished(date_str)
-        claim.setBody(body_description)
+        claim.set_date(date_str)
+        claim.set_body(body_description)
         claim.set_tags(", ".join(tags))
         claim.set_refered_links(related_links)
 

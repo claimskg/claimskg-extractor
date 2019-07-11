@@ -75,11 +75,11 @@ def get_all_claims(criteria):
             date_ = soup.find('div', {"class": "widget__content"}).find("p")
             if date_:
                 date_str = search_dates(date_.text)[0][1].strftime("%Y-%m-%d")
-                claim_.setDate(date_str)
+                claim_.set_date(date_str)
 
             # body
             body = soup.find("div", {"class": "article__text"})
-            claim_.setBody(body.get_text())
+            claim_.set_body(body.get_text())
 
             # related links
             divTag = soup.find("div", {"class": "article__text"})
@@ -164,11 +164,11 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_title(title.text.replace("FACT CHECK: ", ""))
 
         url_date = url.replace("https://checkyourfact.com/", "").replace("/", " ").split(" ")
-        claim.setDate(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
+        claim.set_date(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
 
         # body
         body = parsed_claim_review_page.find("article")
-        claim.setBody(body.get_text())
+        claim.set_body(body.get_text())
 
         # related links
         div_tag = parsed_claim_review_page.find("article")

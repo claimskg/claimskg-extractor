@@ -125,7 +125,7 @@ class Claim:
         self.claim = str(str_).strip()
         return self
 
-    def setBody(self, str_):
+    def set_body(self, str_):
         self.body = str(str_).strip()
         return self
 
@@ -137,7 +137,7 @@ class Claim:
         self.title = str(str_).strip()
         return self
 
-    def setDate(self, str_):
+    def set_date(self, str_):
         self.date = str_
         return self
 

@@ -73,7 +73,7 @@ def get_all_claims(criteria):
 
             # date
             date = soup.find("div", {"class": "bloco-meta"})
-            claim_.setDate(
+            claim_.set_date(
                 dateparser.parse(date.text.split("|")[0], settings={'DATE_ORDER': 'DMY'}).strftime("%Y-%m-%d"))
 
             # related links
@@ -85,7 +85,7 @@ def get_all_claims(criteria):
 
             # related links
             body = soup.find("div", {"class": "post-inner"})
-            claim_.setBody(body.get_text())
+            claim_.set_body(body.get_text())
 
             # tags
             tags_ = [t.text for t in soup.findAll('a', {'rel': 'tag'})]

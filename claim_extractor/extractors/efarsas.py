@@ -47,7 +47,7 @@ def get_all_claims(criteria):
                 refered_links = [l['href'] for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('a')]
                 claim_.set_refered_links(refered_links)
                 claim_.set_claim(soup2.find('strong').text)
-                claim_.setBody(
+                claim_.set_body(
                     "\n".join([l.text for l in soup2.find('section', {'id': 'mvp-content-main'}).findAll('p')]))
                 claims.append(claim_.generate_dictionary())
         except:
@@ -71,7 +71,7 @@ def new_claim(f_link, date, title, tags):
     claim_.set_tags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
-    claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
+    claim_.set_date(dateparser.parse(date_).strftime("%Y-%m-%d"))
     claim_.set_source("efarsas")
-    claim_.setBody("")
+    claim_.set_body("")
     return claim_

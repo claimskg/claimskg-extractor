@@ -82,12 +82,12 @@ def get_all_claims(criteria):
             if date_:
                 date_str = search_dates(date_['data-time'])[0][1].strftime("%Y-%m-%d")
                 # print date_str
-                claim_.setDate(date_str)
+                claim_.set_date(date_str)
             # print claim_.date
 
             # body
             body = soup.find("div", {"class": "article-body article-main"})
-            claim_.setBody(body.get_text())
+            claim_.set_body(body.get_text())
 
             # related links
             divTag = soup.find("div", {"class": "article-body article-main"})

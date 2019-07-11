@@ -74,11 +74,11 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_title(title.text.replace("FACT CHECK: ", ""))
 
         url_date = url.replace("https://checkyourfact.com/", "").replace("/", " ").split(" ")
-        claim.setDate(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
+        claim.set_date(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
 
         # body
         body = parsed_claim_review_page.find("article")
-        claim.setBody(body.get_text())
+        claim.set_body(body.get_text())
 
         # related links
         div_tag = parsed_claim_review_page.find("article")

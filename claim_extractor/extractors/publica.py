@@ -68,7 +68,7 @@ def get_all_claims(criteria):
                     continue
                 if contr == 2:
                     claim_.setConclusion(c.img['alt'])
-                    claim_.setBody(claim_.body + "\n" + c.text)
+                    claim_.set_body(claim_.body + "\n" + c.text)
                     for l in c.findAll('a', href=True):
                         refered_links.append(l['href'])
                     contr = 3
@@ -76,7 +76,7 @@ def get_all_claims(criteria):
                 if contr == 3:
                     for l in c.findAll('a', href=True):
                         refered_links.append(l['href'])
-                    claim_.setBody(claim_.body + "\n" + c.text)
+                    claim_.set_body(claim_.body + "\n" + c.text)
                     for l in c.findAll('a', href=True):
                         refered_links.append(l['href'])
             if stop:
@@ -103,7 +103,7 @@ def new_claim(f_link, date, title, tags):
     claim_.set_tags(tags)
     date_ = date.strip().split()
     date_ = "-".join([date_[4], date_[2], date_[0]])
-    claim_.setDate(dateparser.parse(date_).strftime("%Y-%m-%d"))
+    claim_.set_date(dateparser.parse(date_).strftime("%Y-%m-%d"))
     claim_.set_source("publica")
-    claim_.setBody("")
+    claim_.set_body("")
     return claim_
