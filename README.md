@@ -14,10 +14,15 @@ This project is a fork of https://github.com/vwoloszyn/fake_news_extractor that 
 - Checkyourfact - http://checkyourfact.com
 - FactsCan - http://factscan.ca/
 - AfricaCheck - https://africacheck.org/
+- AAP FactCheck - https://factcheck.aap.com.au/
+- EU vs Disinfo (Disinformation Cases) - https://euvsdisinfo.eu/disinformation-cases/
+- AFP Fact Check - https://factcheck.afp.com/
 
 See the ClaimsKG dataset website for statistics (https://data.gesis.org/claimskg/site)
 
+### French
 
+- AFP Factuel - https://factuel.afp.com/
 
 ## Features Extracted
 

@@ -46,6 +46,9 @@ def find_by_text(soup, text, tag, **kwargs):
 
 
 class FactCheckingSiteExtractor(ABC):
+
+    seen = set()
+
     def __init__(self, configuration: Configuration = Configuration(), ignore_urls: List[str] = None, headers=None,
                  language="eng"):
         if headers is None:
@@ -67,6 +70,8 @@ class FactCheckingSiteExtractor(ABC):
         for listing_page_url in listing_pages:
             print("Fetching listing pages from " + listing_page_url)
             page = caching.get(listing_page_url, headers=self.headers, timeout=5)
+            if not page:
+                continue
             parsed_listing_page = BeautifulSoup(page, self.configuration.parser_engine)
             number_of_pages = self.find_page_count(parsed_listing_page)
             if number_of_pages and number_of_pages < 0:
@@ -97,7 +102,7 @@ class FactCheckingSiteExtractor(ABC):
                                 claims.append(claim.generate_dictionary())
                 except ConnectionError:
                     pass
-            self.failed_log.close()
+        self.failed_log.close()
         return pandas.DataFrame(claims)
 
     @abstractmethod
