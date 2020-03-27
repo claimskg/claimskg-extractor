@@ -90,10 +90,11 @@ class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         else:
             return []
 
-        author = data['@graph'][0]['itemReviewed']['author']
-        if author and 'name' in author.keys():
-            if len(str(author['name'])) > 0:
-                claim.set_author(author['name'])
+        if 'author' in data['@graph'][0]['itemReviewed'].keys():
+            author = data['@graph'][0]['itemReviewed']['author']
+            if author and 'name' in author.keys():
+                if len(str(author['name'])) > 0:
+                    claim.set_author(author['name'])
 
         claim.set_url(url)
         claim.set_source("factuel_afp_fr")

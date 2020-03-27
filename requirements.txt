@@ -4,5 +4,5 @@ dateparser
 beautifulsoup4==4.6.0
 spacy
 pyspotlight==0.7.2
-rdflib==4.2.2
+rdflib
 tqdm

@@ -60,6 +60,8 @@ def get_claim_from_cache(url: str) -> Optional[Claim]:
 
 
 def cache_claim(claim: Claim):
-    dictionary = claim.generate_dictionary()
-    url = claim.url
-    redis.hmset("___cached___claim___" + url, dictionary)
+    if claim is not None:
+        dictionary = claim.generate_dictionary()
+        url = claim.url
+        if url is not None and dictionary is not None:
+            redis.hmset("___cached___claim___" + url, dictionary)

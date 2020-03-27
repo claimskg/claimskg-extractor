@@ -73,6 +73,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # title
         article = parsed_claim_review_page.find("article", {'class', 'main-post'})
+        if article is None:
+            article = parsed_claim_review_page.find("article", {'class', 'snopes-post'})
         header = article.find("header")
         title = header.find("h1")
         claim.set_title(title.text)

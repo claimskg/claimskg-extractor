@@ -16,9 +16,9 @@ class Claim:
         self.url = ""
         self.tags = ""
         self.author = ""
+        self.author_url = ""
         self.date_published = ""
         self.same_as = ""
-        self.source_url = ""
         self.rating_value = ""
         self.worst_rating = ""
         self.best_rating = ""
@@ -36,7 +36,7 @@ class Claim:
                       'rating_bestRating': self.best_rating, 'rating_alternateName': self.alternate_name,
                       'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.date_published,
                       'creativeWork_author_sameAs': self.same_as, 'claimReview_author_name': self.source,
-                      'claimReview_author_url': self.source_url, 'claimReview_url': self.url,
+                      'claimReview_author_url': self.author_url, 'claimReview_url': self.url,
                       'claimReview_claimReviewed': self.claim, 'claimReview_datePublished': self.date,
                       'claimReview_source': self.source, 'claimReview_author': self.review_author,
                       'extra_body': self.body.replace("\n", ""), 'extra_refered_links': self.referred_links,
@@ -68,7 +68,7 @@ class Claim:
         claim.author = dictionary['creativeWork_author_name']
         claim.date_published = dictionary['creativeWork_datePublished']
         claim.same_as = dictionary['creativeWork_author_sameAs']
-        claim.source_url = dictionary['claimReview_author_url']
+        claim.author_url = dictionary['claimReview_author_url']
         claim.rating_value = dictionary['rating_ratingValue']
         claim.worst_rating = dictionary['rating_worstRating']
         claim.best_rating = dictionary['rating_bestRating']
@@ -114,7 +114,8 @@ class Claim:
         return self
 
     def setSameAs(self, str_):
-        self.same_as = str_
+        if str_ is not None:
+            self.same_as = str_
         return self
 
     def setDatePublished(self, str_):
