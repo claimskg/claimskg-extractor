@@ -49,4 +49,5 @@ def get_claims(configuration):
             claims = extractor_instance.get_all_claims()
             output_data.append(claims)
         data_frame = pandas.concat(output_data)
+        data_frame = data_frame.rename_axis('number')
         data_frame.to_csv(configuration.output, encoding="utf-8")
