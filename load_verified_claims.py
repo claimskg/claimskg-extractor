@@ -31,8 +31,7 @@ else:
     es =  Elasticsearch(['http://%s:%d'%(ELASTICSEARCH_SERVER, PORT)])
 
 
-csvFilePath = 'output_got_test.csv'
-jsonFilePath='json_test.json'
+csvFilePath = 'output_got_DB.csv'
 data={}
 verified_claims=[]
 with open(csvFilePath, encoding='utf-8') as csvFile:
