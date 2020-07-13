@@ -34,7 +34,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         title_text = next_page.find(
             "title").text  # Format u'Fact Checks Archive | Page 2 of 1069 | Snopes.com'
         max_page_pattern = re.compile("Page [0-9]+ of ([0-9+]+)")
-        result = max_page_pattern.match(title_text.split("|")[1].strip())
+        result = max_page_pattern.match(title_text.split("-")[1].strip())
         max_page = int(result.group(1))
         return max_page
 
