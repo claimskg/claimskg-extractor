@@ -46,9 +46,11 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 break
             url = listing_page_url + "/page/" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
-            current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls = urls + self.extract_urls(current_parsed_listing_page)
+            if page is not None:
+                current_parsed_listing_page = BeautifulSoup(page, "lxml")
+                urls = urls + self.extract_urls(current_parsed_listing_page)
         return urls
+
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()
