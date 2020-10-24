@@ -121,11 +121,11 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 date = search_dates(meta_text)
                 if date:
                     date = date[0][1].strftime("%Y-%m-%d")
-                    claim.setDatePublished(date)
+                    claim.set_date_published(date)
         else:
             rating_div = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
             if rating_div and rating_div.find("div", {"itemprop": "datePublished"}):
-                claim.setDatePublished(rating_div.find("div", {"itemprop": "datePublished"}).get_text())
+                claim.set_date_published(rating_div.find("div", {"itemprop": "datePublished"}).get_text())
 
         # related links
         div_tag = parsed_claim_review_page.find("div", {"class": "article__text"})

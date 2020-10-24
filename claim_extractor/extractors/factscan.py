@@ -98,7 +98,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         if len(date_published) > 0:
             date_published = search_dates(date_published)[0][1].strftime("%Y-%m-%d")
-            claim.setDatePublished(date_published)
+            claim.set_date_published(date_published)
 
         # rating
         if json_:

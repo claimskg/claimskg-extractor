@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import re
-from datetime import datetime
+import json
 from typing import List
 
+import dateparser
 from bs4 import BeautifulSoup
 
 from claim_extractor import Claim
-from claim_extractor.extractors import FactCheckingSiteExtractor
+from claim_extractor.extractors import FactCheckingSiteExtractor, caching
 
 
 class AapFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ['https://factcheck.aap.com.au']
+        return ['https://factcheck.aap.com.au/']
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         return 1
@@ -20,11 +20,15 @@ class AapFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = []
-        links = parsed_listing_page.select('a[href^="/news-media-claims/"]')
-        for anchor in links:
-            url = "https://factcheck.aap.com.au" + str(anchor['href'])
-            max_claims = self.configuration.maxClaims
-            urls.append(url)
+        offset = 1
+        links = caching.get(f"https://loadmore.aap.com.au/category?category=6&postOffset={offset}&perPage=100")
+        offset = 100
+        while links != "[]":
+            parsed_json = json.loads(links)
+            for link in parsed_json:
+                urls.append(link['link'])
+            links = caching.get(f"https://loadmore.aap.com.au/category?category=6&postOffset={offset}&perPage=100")
+            offset += 100
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
@@ -41,84 +45,34 @@ class AapFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         claim.set_title(title.strip())
 
+        body = parsed_claim_review_page.select(".c-article__content")
+
+        verdict_div = body[0].select(".c-article__verdict")
+        if len(verdict_div) > 0:
+            verdict_strongs = verdict_div[0].find_all("strong")
+        else:
+            verdict_strongs = body[0].find_all("strong")
+        verdict = ""
+        for verdict_strong in verdict_strongs:
+            if "AAP FactCheck" not in verdict_strong.text and "AAP FactCheck Investigation:" not in verdict_strong.text:
+                verdict = verdict_strong.text
+                break
+        claim.set_alternate_name(verdict)
+        if len(verdict_div) > 0:
+            verdict_div[0].decompose()
+
         # The body
-        # try:
-        children = parsed_claim_review_page.find('div', {"role": "main"}).children
-        body = None
-        for child in children:
-            y = child.find(string=re.compile("The Analysis"))
-            if child.name == 'section' and y:
-                body = child.text
-        if body and len(body) > 0:
-            claim.set_body(body)
-        # except Exception as e:
-        #     pass
-
-        # Claim
-        x = parsed_claim_review_page.find(string=re.compile("The Statement")).parent
-        while str(x.name) != 'h2':
-            x = x.parent
-
-        x = x.next_sibling
-        claim_str = ''
-        while str(x.name) != 'h2':
-            y = x.find('strong')
-            if (y):
-                claim_str = y.text
-                if not y.text[0].isalnum():
-                    claim_str = claim_str[1:]
-                if not y.text[-1].isalnum():
-                    claim_str = claim_str[:-1]
-                claim.set_claim(claim_str)
-                break
-            x = x.next_sibling
-
-        if claim_str == '':
-            return []
-
-        claim.set_claim(x.text[1:-1])
-
-        # Set the date where the claim was first said
-        y = x.next_sibling
-        x = y.text.split(' ')
-
-        while y.name != 'h2':
-            while x[-1] == '':
-                x = x[:-1]
-
-            n = 10
-            while n > 0:
-                try:
-                    int(x[-1][-1])
-                    break
-                except Exception as e:
-                    x[-1] = x[-1][:-1]
-                    n = n - 1
-            try:
-                claim.set_date(datetime.strptime(x[-3] + ' ' + x[-2] + x[-1], '%B %d,%Y').strftime("%Y-%m-%d"))
-                claim.set_author(' '.join(x[:-3]))
-                break
-            except Exception as e:
-                y = y.next_sibling
-                x = y.text.split(' ')
+        body_text = body[0].text
+        claim.set_body(body_text)
 
         # Date where the article was published
-        x = parsed_claim_review_page.find(string=re.compile("First published")).split(' ')
-        x = datetime.strptime(x[2] + ' ' + x[3] + x[4], '%B %d,%Y').strftime("%Y-%m-%d")
-        claim.setDatePublished(x)
 
-        # Truth value
-        x = parsed_claim_review_page.find(string=re.compile("The Verdict")).parent.parent.next_sibling
+        date_tag = parsed_claim_review_page.find("date", attrs={'class': 'd-none'})
+        date_text = date_tag.text
+        find_date = dateparser.parse(date_text)
+        claim.set_date_published(find_date.strftime("%Y-%m-%d"))
 
-        claim.set_alternate_name(x.find('strong').text.replace("-", "".replace("–", "").strip()))
-
-        # References
-        x = parsed_claim_review_page.find(string=re.compile("The References")).parent
-        while str(x.name) != 'h2':
-            x = x.parent
-        x = x.parent
-
-        elements = x.findAll('a')
+        elements = body[0].find_all('a')
         refs = []
         for elem in elements:
             refs.append(elem['href'])

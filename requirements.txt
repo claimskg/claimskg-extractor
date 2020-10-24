@@ -6,3 +6,5 @@ spacy
 pyspotlight==0.7.2
 rdflib
 tqdm
+yandex.translate
+contractions

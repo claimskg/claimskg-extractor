@@ -60,7 +60,7 @@ class EuvsdisinfoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         for div in divs:
             elem = div.find('span')
             if div.find(string=re.compile("Date")):
-                claim.setDatePublished(elem.text)
+                claim.set_date_published(elem.text)
             elif div.find(string=re.compile("Keywords")):
                 claim.set_tags(elem.text)
             elif div.find(string=re.compile("Outlet")):

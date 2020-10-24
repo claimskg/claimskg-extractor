@@ -28,6 +28,7 @@ class Claim:
         self.keyword_entities = ""
         self.author_entities = ""
         self.review_author = ""
+        self.related_links = []
 
     def generate_dictionary(self):
         if isinstance(self.referred_links, list):
@@ -43,7 +44,7 @@ class Claim:
                       'extra_title': self.title, 'extra_tags': self.tags,
                       'extra_entities_claimReview_claimReviewed': self.claim_entities,
                       'extra_entities_body': self.body_entities, 'extra_entities_keywords': self.keyword_entities,
-                      'extra_entities_author': self.author_entities}
+                      'extra_entities_author': self.author_entities, 'related_links': ",".join(self.related_links)}
         return dictionary
 
     @classmethod
@@ -73,6 +74,8 @@ class Claim:
         claim.worst_rating = dictionary['rating_worstRating']
         claim.best_rating = dictionary['rating_bestRating']
         claim.alternate_name = dictionary['rating_alternateName']
+        claim.related_links = dictionary['related_links']
+
 
         return claim
 
@@ -118,7 +121,7 @@ class Claim:
             self.same_as = str_
         return self
 
-    def setDatePublished(self, str_):
+    def set_date_published(self, str_):
         self.date_published = str_
         return self
 
@@ -148,6 +151,12 @@ class Claim:
 
     def set_tags(self, str_):
         self.tags = str_
+
+    def add_related_link(self, link):
+        self.related_links.append(link)
+
+    def add_related_links(self, links):
+        self.related_links.extend(links)
 
 
 class Configuration:

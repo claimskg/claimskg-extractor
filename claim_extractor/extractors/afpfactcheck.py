@@ -117,7 +117,7 @@ class AfpfactcheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         try:
             date = data['@graph'][0]['datePublished']
-            claim.setDatePublished(date.split(' ')[0])
+            claim.set_date_published(date.split(' ')[0])
         except Exception:
             pass
 
