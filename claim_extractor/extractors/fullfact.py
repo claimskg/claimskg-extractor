@@ -59,7 +59,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        return None
+        return -1
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) -> List[
         str]:
@@ -70,7 +70,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             url = elem.find('a')['href'][20:]
             n = len(self.seen)
             self.seen.add(url)
-            if (len(self.seen) == n):
+            if len(self.seen) == n:
                 continue
             urls.append(url)
         return urls
@@ -103,7 +103,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 conclusion_text = self._conclusion_processor.extract_conclusion(conclusion_text)
 
                 claim.set_claim(claim_text)
-                claim.set_alternate_name(conclusion_text)
+                claim.set_rating(conclusion_text)
                 claim.set_tags(','.join(keywords))
                 claim.set_date_published(date_value)
                 claims.append(claim)

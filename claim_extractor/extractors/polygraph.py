@@ -105,6 +105,6 @@ class PolygraphFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         #rating
         rating = parsed_claim_review_page.find('div', {"class":"verdict"}).find_all('span')[1]
-        claim.set_alternate_name(rating.text)
+        claim.set_rating(rating.text)
 
         return [claim]

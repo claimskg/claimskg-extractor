@@ -6,7 +6,7 @@ from typing import List
 from bs4 import BeautifulSoup
 from tqdm import trange
 
-from claim_extractor import Claim
+from claim_extractor import Claim, Configuration
 from claim_extractor.extractors import FactCheckingSiteExtractor, caching
 
 
@@ -14,49 +14,43 @@ from claim_extractor.extractors import FactCheckingSiteExtractor, caching
 
 class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
+    def __init__(self, configuration: Configuration = Configuration(), ignore_urls: List[str] = None, headers=None,
+                 language="eng"):
+        super().__init__(configuration, ignore_urls, headers, language)
+        self.base_url = "https://factuel.afp.com/"
+
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ['https://factuel.afp.com/']
+        return ["https://factuel.afp.com/list/all/37881/all/all/87",
+                "https://factuel.afp.com/list/all/37075/all/all/88",
+                "https://factuel.afp.com/list/all/37783/all/all/89",
+                "https://factuel.afp.com/list/all/37074/all/all/90",
+                "https://factuel.afp.com/list/all/37202/all/all/135"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        return self.find_last_page()
+        paginaltion_nav = parsed_listing_page.find("nav", attrs={'id': 'pagination'})
 
-    def find_last_page(self):  # returns last page listing articles
-        page = 80  # 86
-        count = 32
-        lim = -1
-        # Dichotomy
-        while count >= 1:
-            url = "https://factuel.afp.com/?page=" + str(int(page))
-            result = caching.get(url, headers=self.headers, timeout=10)
-            parsed = BeautifulSoup(result, self.configuration.parser_engine)
-            article = parsed.findAll("article")
-            if lim > 0:
-                count = count / 2
-            if len(article) != 0:
-                if count < 1:
-                    return int(page)
-                page = page + count
-            else:
-                if lim == -1:
-                    lim = page
-                    count = count / 2
-                elif count < 1:
-                    return int(page - 1)
-                page = page - count
+        last_li_href = list(paginaltion_nav.select(".page-link-desktop"))[-1]['href']
+        page_matcher = re.match("^.*page=([0-9]+)$", last_li_href)
+        last_page_number = page_matcher.group(1)
+        return int(last_page_number)
 
     def extract_urls(self, parsed_listing_page):
         urls = list()
-        links = parsed_listing_page.findAll('article')
-        for link in links:
-            url = link.find('a')['href']
-            urls.append("https://factuel.afp.com" + url)
+        featured_post = parsed_listing_page.find('div', attrs={'class': 'featured-post'})
+        if featured_post is None:
+            featured_post = parsed_listing_page.find('main')
+        cards = featured_post.select(".card")
+        for card in cards:
+            url = card.find("a")['href']
+            urls.append(self.base_url + url)
+
         return urls
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) -> List[
         str]:
         urls = self.extract_urls(parsed_listing_page)
-        for page_number in trange(2, number_of_pages):
-            url = "https://factuel.afp.com/?page=" + str(int(page_number))
+        for page_number in trange(1, number_of_pages):
+            url = listing_page_url + "?page=" + str(int(page_number))
             page = caching.get(url, headers=self.headers, timeout=20)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
             urls += self.extract_urls(current_parsed_listing_page)
@@ -80,7 +74,7 @@ class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         rating = data['@graph'][0]['reviewRating']
         if rating and 'alternateName' in rating.keys():
-            claim.set_alternate_name(rating['alternateName'])
+            claim.set_rating(rating['alternateName'])
             try:
                 claim.set_best_rating(rating['bestRating'])
                 claim.setWorstRating(rating['worstRating'])
@@ -97,7 +91,7 @@ class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     claim.set_author(author['name'])
 
         claim.set_url(url)
-        claim.set_source("factuel_afp_fr")
+        claim.set_source("factual_afp")
 
         try:
             title = data['@graph'][0]['name']

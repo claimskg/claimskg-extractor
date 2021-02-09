@@ -75,6 +75,6 @@ class EuvsdisinfoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         x = parsed_claim_review_page.find('div', {'class':'report-disproof-title'}).text
 
         if x == 'Disproof':
-            claim.set_alternate_name('false')
+            claim.set_rating('false')
 
         return [claim]

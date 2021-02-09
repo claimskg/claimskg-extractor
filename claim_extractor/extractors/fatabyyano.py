@@ -90,7 +90,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
         claim.set_rating_value(
             self.extract_rating_value(parsed_claim_review_page))
-        claim.set_alternate_name(FatabyyanoFactCheckingSiteExtractor.translate_rating_value(
+        claim.set_rating(FatabyyanoFactCheckingSiteExtractor.translate_rating_value(
             self.extract_rating_value(parsed_claim_review_page)))
         claim.set_source("fatabyyano")
         claim.set_author("fatabyyano")

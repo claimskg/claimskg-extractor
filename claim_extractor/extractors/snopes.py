@@ -186,7 +186,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 return []
 
         if rating:
-            claim.set_alternate_name(rating.text)
+            claim.set_rating(rating.text)
         else:
             return []
 

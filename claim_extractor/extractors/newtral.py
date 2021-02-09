@@ -119,7 +119,7 @@ class NewtralFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     else:
                         pass
 
-        claim.alternate_name = rating_text
+        claim.rating = rating_text
 
         author_span = parsed_claim_review_page.find("span", attrs={'class': 'c-article__author'})
         author_a = author_span.find("a")

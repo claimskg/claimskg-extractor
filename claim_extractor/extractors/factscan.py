@@ -105,7 +105,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
             claim.setWorstRating(parse_wrong_json(json_, '"worstRating":', ","))
             claim.set_best_rating(parse_wrong_json(json_, '"bestRating":', ","))
-            claim.set_alternate_name(parse_wrong_json(json_, '"alternateName":', ","))
+            claim.set_rating(parse_wrong_json(json_, '"alternateName":', ","))
         # when there is no json
         else:
             if parsed_claim_review_page.find("div", {"class": "fact-check-icon"}):
@@ -113,7 +113,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     claim_str = \
                         parsed_claim_review_page.find("div", {"class": "fact-check-icon"}).find('img')['alt'].split(
                             ":")[1]
-                    claim.alternate_name = claim_str.strip()
+                    claim.rating = claim_str.strip()
 
         # body
         body = parsed_claim_review_page.find("div", {"class": "entry-content"})

@@ -86,5 +86,5 @@ class EufactcheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         #rating
         rating = full_title[0].strip()
-        claim.set_alternate_name(rating)
+        claim.set_rating(rating)
         return [claim]

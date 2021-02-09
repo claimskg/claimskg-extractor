@@ -22,7 +22,7 @@ class Claim:
         self.rating_value = ""
         self.worst_rating = ""
         self.best_rating = ""
-        self.alternate_name = ""
+        self.rating = ""
         self.claim_entities = ""
         self.body_entities = ""
         self.keyword_entities = ""
@@ -34,7 +34,7 @@ class Claim:
         if isinstance(self.referred_links, list):
             self.referred_links = ",".join(self.referred_links)
         dictionary = {'rating_ratingValue': self.rating_value, 'rating_worstRating': self.worst_rating,
-                      'rating_bestRating': self.best_rating, 'rating_alternateName': self.alternate_name,
+                      'rating_bestRating': self.best_rating, 'rating_alternateName': self.rating,
                       'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.date_published,
                       'creativeWork_author_sameAs': self.same_as, 'claimReview_author_name': self.source,
                       'claimReview_author_url': self.author_url, 'claimReview_url': self.url,
@@ -73,7 +73,7 @@ class Claim:
         claim.rating_value = dictionary['rating_ratingValue']
         claim.worst_rating = dictionary['rating_worstRating']
         claim.best_rating = dictionary['rating_bestRating']
-        claim.alternate_name = dictionary['rating_alternateName']
+        claim.rating = dictionary['rating_alternateName']
         claim.related_links = dictionary['related_links']
 
 
@@ -97,14 +97,14 @@ class Claim:
             self.best_rating = str_
         return self
 
-    def set_alternate_name(self, alternate_name):
-        self.alternate_name = str(alternate_name).replace('"', "").strip()
+    def set_rating(self, alternate_name):
+        self.rating = str(alternate_name).replace('"', "").strip()
         # split sentence
 
-        if "." in self.alternate_name:
-            split_name = self.alternate_name.split(".")
+        if "." in self.rating:
+            split_name = self.rating.split(".")
             if len(split_name) > 0:
-                self.alternate_name = split_name[0]
+                self.rating = split_name[0]
 
         return self
 

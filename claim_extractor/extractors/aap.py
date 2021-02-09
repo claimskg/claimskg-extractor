@@ -57,7 +57,7 @@ class AapFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if "AAP FactCheck" not in verdict_strong.text and "AAP FactCheck Investigation:" not in verdict_strong.text:
                 verdict = verdict_strong.text
                 break
-        claim.set_alternate_name(verdict)
+        claim.set_rating(verdict)
         if len(verdict_div) > 0:
             verdict_div[0].decompose()
 

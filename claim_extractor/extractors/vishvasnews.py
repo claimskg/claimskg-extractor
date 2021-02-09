@@ -123,7 +123,7 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim_txt = self.extract_claim(parsed_claim_review_page)
         review = self.extract_review(parsed_claim_review_page)
         rating_value = self.extract_rating_value(parsed_claim_review_page)
-        claim.set_alternate_name(rating_value)
+        claim.set_rating(rating_value)
         claim.set_source("Vishvanews")  # auteur de la review
         claim.review_author = self.extract_author(parsed_claim_review_page)
         claim.set_author(self.extract_claimed_by(
