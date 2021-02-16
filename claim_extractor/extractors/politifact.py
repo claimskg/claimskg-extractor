@@ -61,11 +61,12 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_url(url)
         claim.set_source("politifact")
 
-        # title
+
+        # Claim
         title = parsed_claim_review_page.find("div", {"class": "m-statement__quote"})
         claim.set_claim(title.text)
 
-        # Claim
+        # title
         summary = parsed_claim_review_page.find("meta", attrs={'name': 'description'})
         claim.set_title(summary.text)
 
@@ -81,28 +82,6 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         rating = rating_image['alt']
         claim.set_rating(rating)
 
-        # # rating
-        # rating_div = parsed_claim_review_page.find("div", {"itemprop": "reviewRating"})
-        # if rating_div:
-        #     rating_value = rating_div.find("div", {"itemprop": "ratingValue"})
-        #     if rating_value:
-        #         claim.rating_value = rating_value.text
-        #     worst_rating = rating_div.find("div", {"itemprop": "worstRating"})
-        #     if worst_rating:
-        #         claim.worst_rating = worst_rating.text
-        #
-        #     best_rating = rating_div.find("div", {"itemprop": "bestRating"})
-        #     if best_rating:
-        #         claim.best_rating = best_rating.text
-        #
-        #     alternate_name = rating_div.find("div", {"itemprop": "alternateName"})
-        #     if alternate_name:
-        #         claim.alternate_name = alternate_name.text
-        # else:
-        #     statement_detail = parsed_claim_review_page.find("img", {"class", "statement-detail"})
-        #     if statement_detail:
-        #         claim.alternate_name = statement_detail['alt']
-
         # body
         body = parsed_claim_review_page.find("article", {"class": "m-textblock"})
         claim.set_body(body.get_text())
@@ -114,23 +93,6 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_author(author)
             date_str = search_dates(author_content.find('span').text)[0][1].strftime("%Y-%m-%d")
             claim.set_date_published(date_str)
-
-        # # date published
-        # if author_content:
-        #     meta_text = author_content.text
-        #     if "on" in meta_text:
-        #         meta_text = meta_text.split(" on ")[1]
-        #     if "in" in meta_text:
-        #         meta_text = meta_text.split(" in ")[0]
-        #     if meta_text:
-        #         date_claimed = search_dates(meta_text)
-        #         if date_claimed:
-        #             date_claimed = date_claimed[0][1].strftime("%Y-%m-%d")
-        #             claim.set_date_published(date_claimed)
-        # else:
-        #     rating_div = parsed_claim_review_page.find("div", {"itemprop": "itemReviewed"})
-        #     if rating_div and rating_div.find("div", {"itemprop": "datePublished"}):
-        #         claim.set_date_published(rating_div.find("div", {"itemprop": "datePublished"}).get_text())
 
         # related links
         related_links = []
