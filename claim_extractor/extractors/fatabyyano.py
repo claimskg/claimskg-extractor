@@ -5,10 +5,7 @@ import re
 import sys
 from typing import *
 
-import tagme
 from bs4 import BeautifulSoup
-from yandex_translate import YandexTranslate
-from yandex_translate import YandexTranslateException
 
 from claim_extractor import Claim, Configuration
 from claim_extractor.extractors import FactCheckingSiteExtractor, caching
@@ -16,8 +13,6 @@ from claim_extractor.extractors import FactCheckingSiteExtractor, caching
 
 class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     # Constants
-    YANDEX_API_KEY = 'trnsl.1.1.20200322T172225Z.d4230973262b4d47.2a7e5fe0d388910d59eeaa77cc594c906961fa1a'
-    TAGME_API_KEY = 'b6fdda4a-48d6-422b-9956-2fce877d9119-843339462'
 
     def __init__(self, configuration: Configuration):
         super().__init__(configuration)
@@ -65,7 +60,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return maximum
 
     def retrieve_urls(self, parsed_claim_review_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) -> \
-    List[str]:
+            List[str]:
         """
             :parsed_listing_page: --> une page (parsed) qui liste des claims
             :listing_page_url:    --> l'url associé à la page ci-dessus
@@ -75,12 +70,12 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         url_begin = listing_page_url + "page/"
         url_end = "/"
         result = []
-        for page_number in range(1, number_of_pages + 1):
-            url = url_begin + str(page_number) + url_end
-            parsed_web_page = self.get(url)
-            links = parsed_web_page.select("main article h2 a")
-            for link in links:
-                result.append(link['href'])
+        category = "..."
+        json_params = """{"columns":"3","exclude_items":"none","img_size":"default","ignore_items_size":false,"items_layout":"15632","items_offset":"1","load_animation":"none","overriding_link":"none","post_id":15837,"query_args":{"category_name":""""+category+"""","post_type":["post"],"post_status":["publish"],"tax_query":[{"taxonomy":"category","terms":["religious_related_rumors"],"field":"slug","operator":"IN","include_children":true}],"paged":2},"orderby_query_args":{"orderby":{"date":"DESC"}},"type":"masonry","us_grid_ajax_index":1,"us_grid_filter_params":null,"us_grid_index":1,"_us_grid_post_type":"current_query"}"""
+        data = json.loads(json_params)
+        parsed = caching.post("https://fatabyyano.net/category/religious_related_rumors", data=data,
+                              headers=self.headers)
+
         return result
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
@@ -102,10 +97,6 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_date(self.extract_date(parsed_claim_review_page))
         claim.set_url(url)
         claim.set_tags(self.extract_tags(parsed_claim_review_page))
-        # extract_entities returns two variables
-        json_claim, json_body = self.extract_entities(self.claim, self.review)
-        claim.set_claim_entities(json_claim)
-        claim.set_body_entities(json_body)
 
         return [claim]
 
@@ -169,15 +160,6 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             # print("Something wrong in extracting rating value !")
             return ""
 
-    def extract_entities(self, claim, review):
-        """
-            You should call extract_claim and extract_review method and
-            store the result in self.claim and self.review before calling this method
-            :return: --> claim_entities in the claim and the review in to different variable
-        """
-        return self.escape(self.get_json_format(self.tagme(self.translate(claim)))), self.escape(
-            self.get_json_format(self.tagme(self.translate(review))))
-
     @staticmethod
     def translate_rating_value(initial_rating_value: str) -> str:
         return {
@@ -190,69 +172,6 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             "خادع": "FALSE",  # ? (Trompeur)
             "زائف": "FALSE"
         }[initial_rating_value]
-
-    @staticmethod
-    def translate(text: str) -> str:
-        """
-            :text:  --> The text in arabic
-            :return:  --> return a translation of :text: in english
-        """
-        if text == "":
-            return ""
-        self = FatabyyanoFactCheckingSiteExtractor
-        yandexAPI = self.YANDEX_API_KEY
-        yandex = YandexTranslate(yandexAPI)
-
-        responses = []
-        try:
-            response = yandex.translate(text, 'ar-en')
-            responses = [response]
-            text_too_long = False
-        except YandexTranslateException as e:
-            if e.args == 'ERR_TEXT_TOO_LONG' or 'ERR_TEXT_TOO_LONG' in e.args:
-                text_too_long = True
-            else:
-                print("Erreur API Yandex\nCode d'erreur : " + str(e.args))
-                sys.exit(1)
-
-        text_list = [text]
-
-        while text_too_long:
-            text_too_long = False
-            try:
-                text_list = self.cut_str(text_list)
-            except ValueError:
-                print("Erreur ")
-                sys.exit(1)
-            responses = []
-            for t in text_list:
-                try:
-                    responses.append(yandex.translate(t, 'ar-en'))
-                except YandexTranslateException:
-                    text_too_long = True
-                    continue
-
-        text_list = []
-        for r in responses:
-            if int(r['code'] != 200):
-                print(
-                    "Erreur lors de la traduction\nCode de l'erreur : " + r['code'])
-                sys.exit(1)
-            else:
-                text_list.append(r['text'][0])
-
-        return self.concat_str(text_list)
-
-    @staticmethod
-    def tagme(text):
-        """
-            :text:  --> The text in english after translation
-            :return:  --> return a list of claim_entities
-        """
-        if text == "":
-            return []
-        tagme.GCUBE_TOKEN = FatabyyanoFactCheckingSiteExtractor.TAGME_API_KEY
-        return tagme.annotate(text)
 
     # write this method (and tagme, translate) in an another file cause we can use it in other websites
     @staticmethod
