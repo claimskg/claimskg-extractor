@@ -25,6 +25,23 @@ def get(url: str, headers: Dict[str, str] = None, timeout: int = None):
     return page_text
 
 
+def post(url: str, headers: Dict[str, str] = None, data: Dict[str, str] = None, timeout: int = None):
+    page_text = redis.get(url)
+    try:
+        if not page_text:
+            result = requests.post(url, headers=headers, data=data, timeout=timeout)
+            if result.status_code < 400:
+                page_text = result.text
+                redis.set(url, page_text)
+            else:
+                return None
+    except requests.exceptions.ReadTimeout:
+        page_text = None
+    except requests.exceptions.MissingSchema:
+        page_text = None
+    return page_text
+
+
 def head(url: str, headers: Dict[str, str] = None, timeout: int = None):
     page_text = redis.get(url)
     try:
