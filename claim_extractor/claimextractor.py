@@ -34,19 +34,20 @@ def get_sites():
 def get_claims(configuration):
     if configuration.website:
         websites = []
-        split_list = configuration.website.split(",")
+        split_list = configuration.website.split( "," )
         if len(split_list) > 0:
             websites += split_list
         else:
-            websites.append(configuration.website)
+            websites.append( configuration.website )
 
         output_data = []
-        for web in configuration.website.split(","):
-            module = importlib.import_module("." + web,
-                                             "claim_extractor.extractors")
-            extractor_class = getattr(module, web.capitalize() + "FactCheckingSiteExtractor")
-            extractor_instance = extractor_class(configuration)  # type : FactCheckingSiteExtractor
+        for web in configuration.website.split( "," ):
+            module = importlib.import_module( "." + web, "claim_extractor.extractors")
+            extractor_class = getattr( module, web.capitalize() + "FactCheckingSiteExtractor" )
+            extractor_instance = extractor_class( configuration )  # type : FactCheckingSiteExtractor
             claims = extractor_instance.get_all_claims()
-            output_data.append(claims)
-        data_frame = pandas.concat(output_data)
-        data_frame.to_csv(configuration.output, encoding="utf-8")
+            output_data.append( claims )
+        data_frame = pandas.concat( output_data )
+        data_frame.to_csv( configuration.output, encoding="utf-8" )
+        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
+        data_frame.to_csv( configuration.output_dev, encoding="utf-8", sep=";", index=True )
