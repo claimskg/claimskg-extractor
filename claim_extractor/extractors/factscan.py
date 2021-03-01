@@ -103,7 +103,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # rating
         if json_:
             claim.set_rating_value(parse_wrong_json(json_, '"ratingValue":', ","))
-            claim.setWorstRating(parse_wrong_json(json_, '"worstRating":', ","))
+            claim.set_worst_rating(parse_wrong_json(json_, '"worstRating":', ","))
             claim.set_best_rating(parse_wrong_json(json_, '"bestRating":', ","))
             claim.set_rating(parse_wrong_json(json_, '"alternateName":', ","))
         # when there is no json
@@ -128,7 +128,7 @@ class FactscanFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_author(author.text)
 
         # same_as
-        claim.setSameAs(parse_wrong_json(json_, '"sameAs": [', "]"))
+        claim.set_same_as(parse_wrong_json(json_, '"sameAs": [', "]"))
 
         # related links
         divTag = parsed_claim_review_page.find("div", {"class": "entry-content"})

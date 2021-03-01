@@ -77,7 +77,7 @@ class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_rating(rating['alternateName'])
             try:
                 claim.set_best_rating(rating['bestRating'])
-                claim.setWorstRating(rating['worstRating'])
+                claim.set_worst_rating(rating['worstRating'])
                 claim.set_rating_value(rating['ratingValue'])
             except Exception:
                 pass
