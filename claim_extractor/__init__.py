@@ -8,26 +8,77 @@ class Claim:
         Default constructor, see other constructor to build object from dictionary
         """
         self.source = ""
+        """The name of the fack checking site, should match the name of the extractor"""
+
         self.claim = str("")
+        """The text of the claim (almost always different from the title of the page!)"""
+
         self.body = str("")
+        """Text of the claim review extracted from the fact checkin site"""
+
         self.referred_links = ""
+        """Links that appear in the body of the claim review in support of various statements."""
+
         self.title = str("")
+        """Titre of the claim review page, often different from the claim, e.g. a reformulation with more context."""
+
         self.date = ""
+        """Date on which the claim review was written"""
+
         self.url = ""
+        """URL of the claim review. Mandatory."""
+
         self.tags = ""
+        """List of tags/keywords extracted from the fact checking site when available, strings separated by commas"""
+
         self.author = ""
+        """Name of the author of the claim (the claimer)."""
+
         self.author_url = ""
+        """Webpage URL associated with the author of the claim review."""
+
         self.date_published = ""
+        """Date on which the claim was made. Not always available in fact checking sites. Often extracted from 
+        free text. Optional, but please include it if the information is available in the fact checking site."""
+
         self.same_as = ""
+        """URL of claim reviews that are marked as identical. Only for fact checkin sites that have a list of 
+        associated claim reviews. Optional."""
+
         self.rating_value = ""
+        """Numerical value for the truth rating, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
         self.worst_rating = ""
+        """Numerical value for worst rating on the scale, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
         self.best_rating = ""
+        """Numerical value for best rating on the scale, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
         self.rating = ""
+        """Truth rating (text) for the claim extracted from the fact checking site. Mandatory."""
+
         self.claim_entities = ""
+        """Named entities extracted from the text of the claim encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.body_entities = ""
+        """Named entities extracted from the body of the claim review encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.keyword_entities = ""
+        """Named entities extracted from the keywords associated with the claim review encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.author_entities = ""
+        """Named entities extracted from the name of the claimer (author of the claim) encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.review_author = ""
+        """Author of the review of the claim on the fact checking site (not the claimer!)"""
+
         self.related_links = []
 
     def generate_dictionary(self):
@@ -76,7 +127,6 @@ class Claim:
         claim.rating = dictionary['rating_alternateName']
         claim.related_links = dictionary['related_links']
 
-
         return claim
 
     def set_rating_value(self, string_value):
@@ -85,7 +135,7 @@ class Claim:
             self.rating_value = string_value
         return self
 
-    def setWorstRating(self, str_):
+    def set_worst_rating(self, str_):
         if str_:
             str_ = str(str_).replace('"', "")
             self.worst_rating = str_
@@ -116,7 +166,7 @@ class Claim:
         self.author = str_
         return self
 
-    def setSameAs(self, str_):
+    def set_same_as(self, str_):
         if str_ is not None:
             self.same_as = str_
         return self
