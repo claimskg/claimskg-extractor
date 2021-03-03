@@ -1,0 +1,44 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Test Snopes maxclaim 1",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["--website=snopes", "--maxclaims=1"]
+        },
+        {
+            "name": "Python: Test Snopes maxclaim 30",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["--website=snopes", "--maxclaims=30"]
+        },
+        {
+            "name": "Python: Test factscan maxclaim 10",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["--website=factscan", "--maxclaims=10"]
+        },
+        {
+            "name": "Python: Test politifact maxclaim 10",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["--website=politifact", "--maxclaims=10"]
+        }
+    ]
+}
