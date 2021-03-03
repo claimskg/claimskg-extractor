@@ -27,7 +27,6 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return ["https://www.snopes.com/fact-check/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        #next_link = parsed_listing_page.find("a", {"class", "btn-next btn"})['href']
         next_link = parsed_listing_page.find("a", {"class", "page-link font-weight-bold"})['href']
         next_page_contents = caching.get(next_link, headers=self.headers, timeout=5)
         next_page = BeautifulSoup(next_page_contents, "lxml")
@@ -72,18 +71,18 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
 
         # url
-        claim.set_url( url )
+        claim.url = str(url)
 
         # souce
-        claim.set_source( "snopes" )
+        claim.source = "snopes"
 
         # title
         title = None
         if parsed_claim_review_page.select( 'article > header > h1' ):
             for tmp in parsed_claim_review_page.select( 'article > header > h1' ):
                 title = tmp.text.strip()
-            sub_title = parsed_claim_review_page.select( 'article > header > h2' )
-            claim.set_title( title.strip() )
+            #sub_title = parsed_claim_review_page.select( 'article > header > h2' )
+            claim.title = str(title.strip())
 
         # author 
         author_list = []
@@ -96,9 +95,12 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 else:
                     print( "no author?" )
                 
-        claim.set_author( ", ".join( author_list ) )
+        claim.author = ", ".join( author_list )
         claim.author_url = ( ", ".join( author_links ) )
 
+        # review_author ?
+        # -
+        
         # date
         datePub = None
         dateUpd = None
@@ -112,12 +114,12 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 if dateItems == 'Published':
                     datePub = dateItems.next.strip()
                     date_str = dateparser.parse( datePub ).strftime( "%Y-%m-%d" )
-                    claim.set_date_published( date_str )
-                    claim.set_date( date_str ) 
+                    claim.date_published = date_str
+                    claim.date = date_str   
                 if dateItems == 'Updated': 
                     dateUpd = dateItems.next.strip()
                     date_str = dateparser.parse( dateUpd ).strftime( "%Y-%m-%d" )
-                    claim.set_date( date_str )
+                    claim.date = date_str
 
         # claim image?
         # -
@@ -128,14 +130,14 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             for p in parsed_claim_review_page.select( 'article > div > div.claim-text.card-body' ):
                 if hasattr(p, 'text' ):
                     claim_text = p.text.strip()
-            claim.set_claim( claim_text )
+            claim.claim = str(claim_text).strip()
 
         # rating -> https://www.snopes.com/fact-check-ratings/
         rating = None
         if parsed_claim_review_page.select( 'article > div > div > div > div.media-body > span' ):
             for rating_span in parsed_claim_review_page.select( 'article > div > div > div > div.media-body > span' ):
                 rating = rating_span.text.strip()
-            claim.set_rating( rating )
+            claim.rating = str(rating).replace('"', "").strip()
         # claim.set_rating_value( rating )
 
         # rating best
@@ -143,29 +145,41 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if parsed_claim_review_page.select( 'article > div > div > div.whats-true > div > p' ):
             for rating_span_true in parsed_claim_review_page.select( 'article > div > div > div.whats-true > div > p' ):
                 whats_true = rating_span_true.text.strip()
-            claim.set_best_rating( whats_true )
+            if whats_true:
+                whats_true = str(whats_true).replace('"', "")
+                # Text: (not Numerical value)
+                # claim.best_rating = whats_true
 
-        # rating wors
+        # rating worst
         whats_true = False
         if parsed_claim_review_page.select( 'article > div > div > div.whats-false > div > p'):
             for rating_span_false in parsed_claim_review_page.select( 'article > div > div > div.whats-false > div > p' ):
                 whats_false = rating_span_false.text.strip()
-            claim.setWorstRating( whats_false )
-
+            if whats_false:
+                whats_false = str(whats_true).replace('"', "")
+                # Text: (not Numerical value)
+                # claim.worst_rating = whats_false
+            
         # rating Undetermined?
         whats_undetermined = False
         if parsed_claim_review_page.select( 'article > div > div > div.whats-undetermined > div > p'):
             for rating_span_undetermined in parsed_claim_review_page.select( 'article > div > div > div.whats-undetermined > div > p' ):
                 whats_undetermined = rating_span_undetermined.text.strip()
-            claim.set( whats_undeterminede )
+            if whats_undetermined:
+                whats_undetermined = str(whats_undetermined).replace('"', "")
+                # Text: (not Numerical value)
+                # claim.whats_undetermined = whats_undetermined
 
+        # rating value ?
+        # -
+        
         # Body descriptioon
         text = ""
         if parsed_claim_review_page.select( 'article > div.single-body.card.card-body.rich-text > p' ):
             for child in parsed_claim_review_page.select( 'article > div.single-body.card.card-body.rich-text > p' ):
                 text += " " + child.text
             body_description = text.strip()
-            claim.set_body( body_description )
+            claim.body = str(body_description).strip()
 
         # related links
         related_links = []
@@ -173,7 +187,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             for link in parsed_claim_review_page.select( 'article > div.single-body.card.card-body > p > a' ):
                 if hasattr( link, 'href' ):
                     related_links.append( link['href'] )
-            claim.set_refered_links( related_links )
+            claim.referred_links = related_links
                 
         # tags
         tags = []
@@ -181,8 +195,11 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             for tag in parsed_claim_review_page.select( 'article > footer > div > a > div > div' ): 
                 if hasattr( tag, 'text' ):
                     tags.append( tag.text.strip() )
-            claim.set_tags( ", ".join( tags ) )
-                
+            claim.tags = ", ".join( tags )
+
+        # same as ?
+        # -
+
         #  No Rating? No Claim? 
         if not claim_text or not rating:
             print( url )
