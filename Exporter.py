@@ -16,15 +16,15 @@ from claim_extractor import Configuration
 def main(argv):
     options = {}
     criteria = Configuration()
-    criteria.setOutput("C:/Users/schue/Desktop/Repos/claimskg-extractor/output_got.csv")
-    criteria.setOutputDev("C:/Users/schue/Desktop/Repos/claimskg-extractor/output_dev.csv")
+    criteria.setOutput("output_got.csv")    
+    criteria.setOutputDev("output_dev.csv")
 
     if len(argv) == 0:
         print('You must pass some parameters. Use \"-h\" to help.')
         return
 
     if len(argv) == 1 and argv[0] == '-h':
-        f = open('C:/Users/schue/Desktop/Repos/claimskg-extractor/exporter_help_text.txt', 'r')
+        f = open('exporter_help_text.txt', 'r')
         print(f.read())
         f.close()
         return
