@@ -2,7 +2,6 @@
 import json
 import math
 import re
-import sys
 from typing import *
 
 from bs4 import BeautifulSoup
@@ -15,7 +14,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     # Constants
 
     def __init__(self, configuration: Configuration):
-        super().__init__(configuration)
+        super().__init__(configuration, language="ara")
 
     def get(self, url):
         """ @return the webpage """

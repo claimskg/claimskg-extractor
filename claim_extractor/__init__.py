@@ -227,6 +227,7 @@ class Configuration:
         self.entity_link = False
         self.normalize_credibility = True
         self.parser_engine = "lxml"
+        self.annotator_uri = "http://localhost:8090/service/"
 
     def setSince(self, since):
         self.since = since
