@@ -16,7 +16,8 @@ from claim_extractor import Configuration
 def main(argv):
     options = {}
     criteria = Configuration()
-    criteria.setOutput("output_got.csv")
+    criteria.setOutput("output_got.csv")    
+    criteria.setOutputDev("output_dev.csv")
 
     if len(argv) == 0:
         print('You must pass some parameters. Use \"-h\" to help.')
@@ -26,7 +27,6 @@ def main(argv):
         f = open('exporter_help_text.txt', 'r')
         print(f.read())
         f.close()
-
         return
 
     try:

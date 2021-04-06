@@ -244,6 +244,10 @@ class Configuration:
     def setOutput(self, output):
         self.output = output
         return self
+    
+    def setOutputDev(self, output):
+        self.output_dev = output
+        return self
 
     def set_website(self, website):
         self.website = website
