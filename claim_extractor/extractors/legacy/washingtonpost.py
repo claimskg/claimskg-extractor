@@ -183,7 +183,7 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         rating = find_by_text(parsed_claim_review_page, "Verdict", "span")
         if rating:
             rating_text = rating[0].text.split(":")[-1].strip()
-            claim.set_alternate_name(rating_text)
+            claim.set_rating(rating_text)
         else:
             pass
 
@@ -192,7 +192,7 @@ class WashingtonpostFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         for tag in parsed_claim_review_page.findAll('meta', {"property": "article:tag"}):
             tags.append(tag["content"])
         claim.set_tags(", ".join(tags))
-        if len(claim.alternate_name) == 0:
+        if len(claim.rating) == 0:
             return []
         else:
             return [claim]

@@ -8,32 +8,84 @@ class Claim:
         Default constructor, see other constructor to build object from dictionary
         """
         self.source = ""
+        """The name of the fack checking site, should match the name of the extractor"""
+
         self.claim = str("")
+        """The text of the claim (almost always different from the title of the page!)"""
+
         self.body = str("")
+        """Text of the claim review extracted from the fact checkin site"""
+
         self.referred_links = ""
+        """Links that appear in the body of the claim review in support of various statements."""
+
         self.title = str("")
+        """Titre of the claim review page, often different from the claim, e.g. a reformulation with more context."""
+
         self.date = ""
+        """Date on which the claim review was written"""
+
         self.url = ""
+        """URL of the claim review. Mandatory."""
+
         self.tags = ""
+        """List of tags/keywords extracted from the fact checking site when available, strings separated by commas"""
+
         self.author = ""
+        """Name of the author of the claim (the claimer)."""
+
         self.author_url = ""
+        """Webpage URL associated with the author of the claim review."""
+
         self.date_published = ""
+        """Date on which the claim was made. Not always available in fact checking sites. Often extracted from 
+        free text. Optional, but please include it if the information is available in the fact checking site."""
+
         self.same_as = ""
+        """URL of claim reviews that are marked as identical. Only for fact checkin sites that have a list of 
+        associated claim reviews. Optional."""
+
         self.rating_value = ""
+        """Numerical value for the truth rating, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
         self.worst_rating = ""
+        """Numerical value for worst rating on the scale, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
         self.best_rating = ""
-        self.alternate_name = ""
+        """Numerical value for best rating on the scale, only for fact checking sites that include this information in the
+        meta tags following the schema.org specification. Optional."""
+
+        self.rating = ""
+        """Truth rating (text) for the claim extracted from the fact checking site. Mandatory."""
+
         self.claim_entities = ""
+        """Named entities extracted from the text of the claim encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.body_entities = ""
+        """Named entities extracted from the body of the claim review encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.keyword_entities = ""
+        """Named entities extracted from the keywords associated with the claim review encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.author_entities = ""
+        """Named entities extracted from the name of the claimer (author of the claim) encoded in JSON, optional and deprecated,
+        this will be done in the claimskg generator"""
+
         self.review_author = ""
+        """Author of the review of the claim on the fact checking site (not the claimer!)"""
+
+        self.related_links = []
 
     def generate_dictionary(self):
         if isinstance(self.referred_links, list):
             self.referred_links = ",".join(self.referred_links)
         dictionary = {'rating_ratingValue': self.rating_value, 'rating_worstRating': self.worst_rating,
-                      'rating_bestRating': self.best_rating, 'rating_alternateName': self.alternate_name,
+                      'rating_bestRating': self.best_rating, 'rating_alternateName': self.rating,
                       'creativeWork_author_name': self.author, 'creativeWork_datePublished': self.date_published,
                       'creativeWork_author_sameAs': self.same_as, 'claimReview_author_name': self.source,
                       'claimReview_author_url': self.author_url, 'claimReview_url': self.url,
@@ -43,7 +95,7 @@ class Claim:
                       'extra_title': self.title, 'extra_tags': self.tags,
                       'extra_entities_claimReview_claimReviewed': self.claim_entities,
                       'extra_entities_body': self.body_entities, 'extra_entities_keywords': self.keyword_entities,
-                      'extra_entities_author': self.author_entities}
+                      'extra_entities_author': self.author_entities, 'related_links': ",".join(self.related_links)}
         return dictionary
 
     @classmethod
@@ -72,7 +124,8 @@ class Claim:
         claim.rating_value = dictionary['rating_ratingValue']
         claim.worst_rating = dictionary['rating_worstRating']
         claim.best_rating = dictionary['rating_bestRating']
-        claim.alternate_name = dictionary['rating_alternateName']
+        claim.rating = dictionary['rating_alternateName']
+        claim.related_links = dictionary['related_links']
 
         return claim
 
@@ -82,7 +135,7 @@ class Claim:
             self.rating_value = string_value
         return self
 
-    def setWorstRating(self, str_):
+    def set_worst_rating(self, str_):
         if str_:
             str_ = str(str_).replace('"', "")
             self.worst_rating = str_
@@ -94,14 +147,14 @@ class Claim:
             self.best_rating = str_
         return self
 
-    def set_alternate_name(self, alternate_name):
-        self.alternate_name = str(alternate_name).replace('"', "").strip()
+    def set_rating(self, alternate_name):
+        self.rating = str(alternate_name).replace('"', "").strip()
         # split sentence
 
-        if "." in self.alternate_name:
-            split_name = self.alternate_name.split(".")
+        if "." in self.rating:
+            split_name = self.rating.split(".")
             if len(split_name) > 0:
-                self.alternate_name = split_name[0]
+                self.rating = split_name[0]
 
         return self
 
@@ -113,12 +166,12 @@ class Claim:
         self.author = str_
         return self
 
-    def setSameAs(self, str_):
+    def set_same_as(self, str_):
         if str_ is not None:
             self.same_as = str_
         return self
 
-    def setDatePublished(self, str_):
+    def set_date_published(self, str_):
         self.date_published = str_
         return self
 
@@ -149,6 +202,12 @@ class Claim:
     def set_tags(self, str_):
         self.tags = str_
 
+    def add_related_link(self, link):
+        self.related_links.append(link)
+
+    def add_related_links(self, links):
+        self.related_links.extend(links)
+
 
 class Configuration:
 
@@ -168,6 +227,7 @@ class Configuration:
         self.entity_link = False
         self.normalize_credibility = True
         self.parser_engine = "lxml"
+        self.annotator_uri = "http://localhost:8090/service/"
 
     def setSince(self, since):
         self.since = since
@@ -183,6 +243,10 @@ class Configuration:
 
     def setOutput(self, output):
         self.output = output
+        return self
+    
+    def setOutputDev(self, output):
+        self.output_dev = output
         return self
 
     def set_website(self, website):

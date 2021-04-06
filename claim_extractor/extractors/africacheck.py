@@ -94,7 +94,7 @@ def get_all_claims(criteria):
             if soup.find("div", {"class": "indicator"}).find('span'):
                 truth_rating = soup.find("div", {"class": "indicator"}).find('span').get_text()
 
-        claim_.set_alternate_name(str(re.sub('[^A-Za-z0-9 -]+', '', truth_rating)).lower().strip())
+        claim_.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', truth_rating)).lower().strip())
 
         # when there is no json
 
@@ -203,7 +203,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
                     'span').get_text()
 
-        claim.set_alternate_name(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip())
+        claim.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip())
 
         # author
         author = parsed_claim_review_page.find("div", {"class": "sharethefacts-speaker-name"})
@@ -258,7 +258,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 inline_claim = Claim()
                 inline_claim.set_source("africacheck")
                 inline_claim.set_claim(claim_text)
-                inline_claim.set_alternate_name(inline_rating)
+                inline_claim.set_rating(inline_rating)
                 inline_claim.set_refered_links(",".join(inline_links))
                 inline_claim.set_body(inline_body_text)
                 inline_claim.set_tags(", ".join(tags))
@@ -293,7 +293,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 inline_claim = Claim()
                 inline_claim.set_source("africacheck")
                 inline_claim.set_claim(claim_text)
-                inline_claim.set_alternate_name(inline_rating)
+                inline_claim.set_rating(inline_rating)
                 inline_claim.set_refered_links(",".join(inline_links))
                 inline_claim.set_body(inline_body_text)
                 inline_claim.set_tags(", ".join(tags))

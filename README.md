@@ -73,3 +73,28 @@ If you wish to remove the cache entries relative to a particular site, you can u
 ```shell 
 redis-cli --raw keys "http://*SITENAME*" | xargs redis-cli --raw del - 
 ```
+
+
+
+# Intégration
+
+<https://github.com/eleutheromastrophimatique/ClaimsExtractor-/tree/master/claim_extractor/extractors> 
+
+- eufactcheck.eu
+- polygraph.info
+- factograph.info
+
+<https://gitlab.info-ufr.univ-montp2.fr/e20160008449/TER-M1_FullFact/tree/master> (fullfact)
+
+<https://github.com/ImaneLamriou/TER/tree/master/extractors>
+
+- afrikacheck FR
+- newtral
+- pagellapolitika
+
+<https://github.com/massykezzoul/claims-checking/tree/master/src/websites>
+
+
+
+
+

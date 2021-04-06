@@ -6,3 +6,6 @@ spacy
 pyspotlight==0.7.2
 rdflib
 tqdm
+yandex.translate
+contractions
+git+https://github.com/issa-project/entity-fishing-client-python

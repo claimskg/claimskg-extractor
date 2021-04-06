@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 from claim_extractor import Configuration, Claim
+from claim_extractor.annotation import EntityFishingAnnotator
 from claim_extractor.extractors import caching
 from claim_extractor.extractors.caching import get_claim_from_cache, cache_claim
 
@@ -46,7 +47,6 @@ def find_by_text(soup, text, tag, **kwargs):
 
 
 class FactCheckingSiteExtractor(ABC):
-
     seen = set()
 
     def __init__(self, configuration: Configuration = Configuration(), ignore_urls: List[str] = None, headers=None,
@@ -62,6 +62,7 @@ class FactCheckingSiteExtractor(ABC):
         self.ignore_urls = configuration.avoid_urls
         self.language = language
         self.failed_log = open(self.__class__.__name__ + "_extraction_failed.log", "w")
+        self.annotator = EntityFishingAnnotator(configuration.annotator_uri)
 
     def get_all_claims(self):
         claims = []  # type : List[Claim]
@@ -89,6 +90,8 @@ class FactCheckingSiteExtractor(ABC):
                             claim = get_claim_from_cache(url)
                             if not claim:
                                 local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
+                                for claim in local_claims:
+                                    self._annotate_claim(claim)
                                 if len(local_claims) > 1:
                                     for claim in local_claims:
                                         claims.append(claim.generate_dictionary())
@@ -104,6 +107,23 @@ class FactCheckingSiteExtractor(ABC):
                     pass
         self.failed_log.close()
         return pandas.DataFrame(claims)
+
+    def _annotate_claim(self, claim: Claim):
+        if self.language == "eng" or self.language == "fra":
+            claim_text = claim.claim
+            claim.claim_entities = self.annotator.annotate(claim_text, language=self.language)
+
+            if claim.tags is not None:
+                keywords = claim.tags
+                claim.keyword_entities = self.annotator.annotate(keywords, language=self.language)
+
+            if claim.body is not None:
+                claim_body = claim.body
+                claim.body_entities = self.annotator.annotate(claim_body, language=self.language)
+
+            if claim.author is not None:
+                author = claim.author
+                claim.author_entities = self.annotator.annotate(author, language=self.language)
 
     @abstractmethod
     def retrieve_listing_page_urls(self) -> List[str]:

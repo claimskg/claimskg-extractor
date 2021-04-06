@@ -16,7 +16,8 @@ from claim_extractor import Configuration
 def main(argv):
     options = {}
     criteria = Configuration()
-    criteria.setOutput("output_got.csv")
+    criteria.setOutput("output_got.csv")    
+    criteria.setOutputDev("output_dev.csv")
 
     if len(argv) == 0:
         print('You must pass some parameters. Use \"-h\" to help.')
@@ -26,12 +27,10 @@ def main(argv):
         f = open('exporter_help_text.txt', 'r')
         print(f.read())
         f.close()
-
         return
 
-
     try:
-        opts, args = getopt.getopt(argv, "", ("website=", "maxclaims="))
+        opts, args = getopt.getopt(argv, "", ("website=", "maxclaims=", "annotation-api="))
 
         for opt, arg in opts:
             if opt == '--website':
@@ -39,6 +38,8 @@ def main(argv):
 
             if opt == '--maxclaims':
                 criteria.maxClaims = int(arg)
+            if opt == '--annotation-api':
+                criteria.annotator_uri = arg
 
     except:
         print('Arguments parser error, try -h')

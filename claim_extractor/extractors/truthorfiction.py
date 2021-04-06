@@ -83,7 +83,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         if description and rating:
             claim.set_claim(description.text)
-            claim.alternate_name = rating.text
+            claim.rating = rating.text
         else:
             h1 = article.find("h1")
             text = h1.text.replace("–", "-")
@@ -93,7 +93,7 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             if len(claim_text) == 0 or "-" not in text:
                 return []
             else:
-                claim.set_alternate_name(rating_text)
+                claim.set_rating(rating_text)
                 claim.set_claim(claim_text)
 
         tags = []

@@ -26,10 +26,11 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
-        for page_number in tqdm(range(2, number_of_pages)):
+        page_number = 2
+        while True:
             url = listing_page_url + "?page=" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
-            if not page:
+           if not page:
                 break
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
             urls += self.extract_urls(current_parsed_listing_page)
@@ -54,6 +55,11 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
         claim.set_url(url)
         claim.set_source("politifact")
+
+
+        # Claim
+        title = parsed_claim_review_page.find("div", {"class": "m-statement__quote"})
+        claim.set_claim(title.text)
 
         # title
         title = parsed_claim_review_page.find("h2", {"class": "c-title"})
@@ -99,7 +105,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # related links
         div_tag = parsed_claim_review_page.find("article", {"class": "m-textblock"})
         related_links = []
-        for link in div_tag.findAll('a', href=True):
+        for link in body.find_all('a', href=True):
             related_links.append(link['href'])
         claim.set_refered_links(related_links)
 
@@ -114,6 +120,11 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 a_tag_text=a_tag['title']
                 tags.append(a_tag_text)
 
+        if statement_body:
+            topics = statement_body.find("ul", {"class", "m-list"}).find_all("a")
+            for link in topics:
+                text = link['title']
+                tags.append(text)
             claim.set_tags(",".join(tags))
 
         return [claim]
