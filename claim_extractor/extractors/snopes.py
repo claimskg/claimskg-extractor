@@ -33,7 +33,7 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         title_text = next_page.find("title").text  # Format u'Fact Checks Archive | Page 2 of 1069 | Snopes.com'
         max_page_pattern = re.compile("Page [0-9]+ of ([0-9+]+)")
-        result = max_page_pattern.match(title_text.split("|")[1].strip())
+        result = max_page_pattern.match(title_text.split("-")[1].strip())
         max_page = int(result.group(1))
         #max_page = int("150")
 
@@ -47,9 +47,11 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 break
             url = listing_page_url + "page/" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
-            current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls = urls + self.extract_urls(current_parsed_listing_page)
+            if page is not None:
+                current_parsed_listing_page = BeautifulSoup(page, "lxml")
+                urls = urls + self.extract_urls(current_parsed_listing_page)
         return urls
+
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()

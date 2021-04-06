@@ -15,7 +15,7 @@ from claim_extractor.extractors import FactCheckingSiteExtractor, caching
 class AfpfactuelFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def __init__(self, configuration: Configuration = Configuration(), ignore_urls: List[str] = None, headers=None,
-                 language="eng"):
+                 language="fra"):
         super().__init__(configuration, ignore_urls, headers, language)
         self.base_url = "https://factuel.afp.com/"
 

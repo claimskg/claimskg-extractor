@@ -30,7 +30,7 @@ def main(argv):
         return
 
     try:
-        opts, args = getopt.getopt(argv, "", ("website=", "maxclaims="))
+        opts, args = getopt.getopt(argv, "", ("website=", "maxclaims=", "annotation-api="))
 
         for opt, arg in opts:
             if opt == '--website':
@@ -38,6 +38,8 @@ def main(argv):
 
             if opt == '--maxclaims':
                 criteria.maxClaims = int(arg)
+            if opt == '--annotation-api':
+                criteria.annotator_uri = arg
 
     except:
         print('Arguments parser error, try -h')
