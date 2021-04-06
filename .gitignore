@@ -8,3 +8,4 @@ __pycache__/
 
 #IDE project files
 .vscode
+.vscode/launch.json
