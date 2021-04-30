@@ -90,8 +90,8 @@ class FactCheckingSiteExtractor(ABC):
                             claim = get_claim_from_cache(url)
                             if not claim:
                                 local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
-                                for claim in local_claims:
-                                    self._annotate_claim(claim)
+                                #for claim in local_claims: annotation is now in generator
+                                #    self._annotate_claim(claim)
                                 if len(local_claims) > 1:
                                     for claim in local_claims:
                                         claims.append(claim.generate_dictionary())
