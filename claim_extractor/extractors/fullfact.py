@@ -28,15 +28,15 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         max_page_link = ""
-        max_page = int(0)        
-        if parsed_listing_page.select( 'body > main > div > div.row.justify-content-center > ul > li.last.page-item > a' ):
-            for link in parsed_listing_page.select( 'body > main > div > div.row.justify-content-center > ul > li.last.page-item > a' ):
-                if hasattr( link, 'href' ):
-                    max_page_link=link['href']
-            
-            max_page = int(max_page_link.replace("?page=",""))
+        max_page = int(0)
+        if parsed_listing_page.select('body > main > div > div.row.justify-content-center > ul > li.last.page-item > a'):
+            for link in parsed_listing_page.select('body > main > div > div.row.justify-content-center > ul > li.last.page-item > a'):
+                if hasattr(link, 'href'):
+                    max_page_link = link['href']
+
+            max_page = int(max_page_link.replace("?page=", ""))
         return max_page
-    
+
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
@@ -53,7 +53,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()
         links = parsed_listing_page.findAll("div", {"class": "card"})
-        
+
         for anchor in links:
             anchor = anchor.find('a', href=True)
             if "http" in anchor['href']:
@@ -79,76 +79,94 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         # title
         title = None
-        if parsed_claim_review_page.select( 'body > main > div > div > section > article > h1' ):
-            for tmp in parsed_claim_review_page.select( 'body > main > div > div > section > article > h1' ):
+        if parsed_claim_review_page.select('body > main > div > div > section > article > h1'):
+            for tmp in parsed_claim_review_page.select('body > main > div > div > section > article > h1'):
                 title = tmp.text.strip()
             claim.title = str(title.strip())
 
-        # author 
+        # author
         author_list = []
-        author_links = []        
-        if parsed_claim_review_page.select( 'article > section.social-media > div > div > ul > li > span > cite' ): # single author?
-            for author_a in parsed_claim_review_page.select( 'article > section.social-media > div > div > ul > li > span > cite' ):
-                if hasattr( author_a, 'text' ):
-                    author_list.append( author_a.text.strip() )
-                #if hasattr( author_a, 'href' ):
+        author_links = []
+        # single author?
+        if parsed_claim_review_page.select('article > section.social-media > div > div > ul > li > span > cite'):
+            for author_a in parsed_claim_review_page.select('article > section.social-media > div > div > ul > li > span > cite'):
+                if hasattr(author_a, 'text'):
+                    author_list.append(author_a.text.strip())
+                # if hasattr( author_a, 'href' ):
                 #    author_list.append( author_a.text.strip() )
                 #    author_links.append( author_a.attrs['href'] )
                 else:
-                    print( "no author? https://fullfact.org/about/our-team/" )
-                
-        claim.author = ", ".join( author_list )
+                    print("no author? https://fullfact.org/about/our-team/")
+
+        claim.author = ", ".join(author_list)
         #claim.author_url = ( ", ".join( author_links ) )
 
         # date
         datePub = None
         dateUpd = None
         date_str = ""
-        if parsed_claim_review_page.select( 'article > div.published-at' ): # updated?
-            for date_ in parsed_claim_review_page.select( 'article > div.published-at' ):
-                if hasattr( date_, 'text' ):
+        # updated?
+        if parsed_claim_review_page.select('article > div.published-at'):
+            for date_ in parsed_claim_review_page.select('article > div.published-at'):
+                if hasattr(date_, 'text'):
                     datePub = date_.text.strip()
                     if "|" in datePub:
                         split_datePub = datePub.split("|")
                         if len(split_datePub) > 0:
                             datePub = split_datePub[0].strip()
-                    date_str = dateparser.parse( datePub ).strftime( "%Y-%m-%d" )
+                    date_str = dateparser.parse(datePub).strftime("%Y-%m-%d")
                     claim.date_published = date_str
-                    claim.date = date_str   
+                    claim.date = date_str
                 else:
-                    print( "no date?" )     
-        
+                    print("no date?")
+
         # Body descriptioon
         text = ""
-        if parsed_claim_review_page.select( 'article > p' ):
-            for child in parsed_claim_review_page.select( 'article > p' ):
+        if parsed_claim_review_page.select('article > p'):
+            for child in parsed_claim_review_page.select('article > p'):
                 text += " " + child.text
             body_description = text.strip()
             claim.body = str(body_description).strip()
 
         # related links (in page body text <p>)
         related_links = []
-        if parsed_claim_review_page.select( 'article > p > a' ):
-            for link in parsed_claim_review_page.select( 'article > p > a' ):
-                if hasattr( link, 'href' ):
-                    if 'http' in link['href']:
-                        related_links.append( link['href'] )
-                    else:
-                        related_links.append( "https://fullfact.org" + link['href'] )
-            
+        if parsed_claim_review_page.select('article > p > a'):
+            for link in parsed_claim_review_page.select('article > p > a'):
+                try:
+                    if hasattr(link, 'href'):
+                        if 'http' in link['href']:
+                            related_links.append(link['href'])
+                        else:
+                            related_links.append(
+                                "https://fullfact.org" + link['href'])
+                except KeyError as e:
+                    print("->KeyError: " + str(e))
+                    continue
+                except IndexError as e:
+                    print("->IndexError : " + str(e))
+                    continue
+
+
         # related links (in Related fact checks)
-        if parsed_claim_review_page.select( 'section.related-factchecks > div > ul > li > a' ):
-            for link in parsed_claim_review_page.select( 'section.related-factchecks > div > ul > li > a' ):
-                if hasattr( link, 'href' ):
-                    if 'http' in link['href']:
-                        related_links.append( link['href'] )
-                    else:
-                        related_links.append( "https://fullfact.org" + link['href'] )
+        if parsed_claim_review_page.select('section.related-factchecks > div > ul > li > a'):
+            for link in parsed_claim_review_page.select('section.related-factchecks > div > ul > li > a'):
+                try:
+                    if hasattr(link, 'href'):
+                        if 'http' in link['href']:
+                            related_links.append(link['href'])
+                        else:
+                            related_links.append(
+                                "https://fullfact.org" + link['href'])
+                except KeyError as e:
+                    print("->KeyError: " + str(e))
+                    continue
+                except IndexError as e:
+                    print("->IndexError: " + str(e))
+                    continue
 
         if related_links:
             claim.referred_links = related_links
-  
-       
+
         # cannot be found on fullfact:
         # self.tags = ""
         # self.author_url = ""
@@ -158,7 +176,6 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # self.worst_rating = ""
         # self.best_rating = ""
         # self.review_author = ""
-        
 
         # claim # multiple (local) claims: 'article > div > div > div.row.no-gutters.card-body-text > div > div > p' ?
         claim_text_list = []
@@ -166,61 +183,61 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # rating -> VERDICT: extract_conclusion -> true, false, ...
         claim_verdict_list = []
         claim_verdict = None
-                
-        column = "claim" # or verdict:
-        if parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
-            for p in parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
-                if hasattr(p, 'text' ):
+
+        column = "claim"  # or verdict:
+        if parsed_claim_review_page.select('body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p'):
+            for p in parsed_claim_review_page.select('body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p'):
+                if hasattr(p, 'text'):
                     if column == "claim":
-                        claim_text_list.append ( p.text.strip() )
+                        claim_text_list.append(p.text.strip())
                         if claim_text == None:
                             claim_text = p.text.strip()
                         column = "verdict"
                     else:
                         rating_word_list = p.text
-                        conclusion_text = self._conclusion_processor.extract_conclusion(rating_word_list)
+                        conclusion_text = self._conclusion_processor.extract_conclusion(
+                            rating_word_list)
                         #print ("conclusion_text: " + conclusion_text)
                         rating = str(conclusion_text).replace('"', "").strip()
                         if "." in rating:
                             split_name = rating.split(".")
                             if len(split_name) > 0:
                                 rating = split_name[0]
-                        claim_verdict_list.append ( rating )
+                        claim_verdict_list.append(rating)
                         if claim_verdict == None:
                             claim_verdict = rating
-                        
+
                         column = "claim"
 
             # First local claim and rating:
             claim.claim = claim_text
             claim.rating = claim_verdict
 
-            ## All claims and ratings "comma" separated: get all claims?
+            # All claims and ratings "comma" separated: get all claims?
             # claim.claim = ", ".join( claim_text_list )
             # claim.rating = ", ".join( verdict_text_list )
 
-            # Create multiple claims from the main one and add change then the claim text and verdict (rating): 
+            # Create multiple claims from the main one and add change then the claim text and verdict (rating):
             c = 0
             while c < len(claim_text_list)-1:
                 claims.append(claim)
                 claims[c].claim = claim_text_list[c]
                 claims[c].rating = claim_verdict_list[c]
-                c +=1                       
+                c += 1
 
-            #for local_claim in claim_text_list:
+            # for local_claim in claim_text_list:
             #    claims[claim[len(claim)]] = claims[claim[len(claim)-1]]
 
-
-        # No Rating? No Claim? 
+        # No Rating? No Claim?
         if not claim.claim or not claim.rating:
-            print( url )
-            if not claim.rating: 
-                print ( "-> Rating cannot be found!" )
-            if not claim.claim: 
-                print ( "-> Claim cannot be found!" )
+            print(url)
+            if not claim.rating:
+                print("-> Rating cannot be found!")
+            if not claim.claim:
+                print("-> Claim cannot be found!")
             return []
-        
-        #return [claim]
+
+        # return [claim]
         return claims
 
 
@@ -234,7 +251,8 @@ class FullfactConclustionProcessor:
                             "mix_with_neg": ["quite", "necessarily", "sure", "clear"]}
 
         stop_words = stopwords.words('english')
-        self._stop_words = [w for w in stop_words if not w in self._vocabulary["negation"]]
+        self._stop_words = [
+            w for w in stop_words if not w in self._vocabulary["negation"]]
 
         self._punctuation = [".", ",", "!", ";", "?", "'", "\""]
 
@@ -252,7 +270,8 @@ class FullfactConclustionProcessor:
 
     # Fonction qui réduit les mots à leurs racines (mett les verbes à l'infinitif, supprime le "s" du pluriel, etc)
     def _lemmatization(self, tempo):
-        tempo = [self._wordnet_lemmatizer.lemmatize(word, pos='v') for word in tempo]
+        tempo = [self._wordnet_lemmatizer.lemmatize(
+            word, pos='v') for word in tempo]
         return tempo
 
     def _remove_stopwords(self, tempo):
