@@ -3,9 +3,11 @@ import re
 from datetime import datetime, timedelta
 from typing import List
 
+import dateparser
 import contractions
 import nltk
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 from nltk import sent_tokenize, word_tokenize, WordNetLemmatizer
 from nltk.corpus import stopwords
 from nltk.sentiment.util import mark_negation
@@ -22,149 +24,203 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         self._conclusion_processor = FullfactConclustionProcessor()
 
     def retrieve_listing_page_urls(self) -> List[str]:
-        today = datetime.today()
-        d = ldate = today
-        lim = datetime.strptime('2019-06-01', "%Y-%m-%d")  # Date where the script will stop the scraping
-        i = 0
-        delta = timedelta(days=3)
-        urls = list()
-        while d > lim:
-            i = i + 1
-            url = 'http://web.archive.org/web/' + d.strftime('%Y%m%d') + '/https://fullfact.org/'
-
-            r = caching.head(url, headers=self.headers, timeout=10)
-
-            try:
-                if r['status_code'] != 200:
-                    d = d - delta
-                    continue
-
-                dre = re.compile("http://web.archive.org/web/([0-9]+)/https://fullfact.org/")
-                date = dre.match(r['url']).group(1)  # date of the link that is being processed
-                date = datetime.strptime(date[:8], "%Y%m%d")
-
-                if (date.day == ldate.day and date.month == ldate.month):
-                    print(date.strftime('%Y-%m-%d'))
-                    d = d - delta  # d is a date that discrements by a day each
-                    continue
-            except Exception as e:
-                d = d - delta
-                continue
-
-            print('Added home page of ' + date.strftime('%Y-%m-%d'))
-            urls.append(r['url'])
-            ldate = date  # ldate is the date of the last link that was added
-            d = date - delta
-
-        return urls
+        return ["https://fullfact.org/latest/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        return -1
+        max_page_link = ""
+        max_page = int(0)        
+        if parsed_listing_page.select( 'body > main > div > div.row.justify-content-center > ul > li.last.page-item > a' ):
+            for link in parsed_listing_page.select( 'body > main > div > div.row.justify-content-center > ul > li.last.page-item > a' ):
+                if hasattr( link, 'href' ):
+                    max_page_link=link['href']
+            
+            max_page = int(max_page_link.replace("?page=",""))
+        return max_page
+    
+    def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
+            -> List[str]:
+        urls = self.extract_urls(parsed_listing_page)
+        for page_number in tqdm(range(2, number_of_pages)):
+            if 0 < self.configuration.maxClaims < len(urls):
+                break
+            url = listing_page_url + "?page=" + str(page_number)
+            page = caching.get(url, headers=self.headers, timeout=5)
+            if page is not None:
+                current_parsed_listing_page = BeautifulSoup(page, "lxml")
+                urls = urls + self.extract_urls(current_parsed_listing_page)
+        return urls
 
-    def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) -> List[
-        str]:
-        urls = []
-        div = parsed_listing_page.find('div', id='mostRecent')
-        elems = div.findAll('li')
-        for elem in elems:
-            url = elem.find('a')['href'][20:]
-            n = len(self.seen)
-            self.seen.add(url)
-            if len(self.seen) == n:
-                continue
-            urls.append(url)
+    def extract_urls(self, parsed_listing_page: BeautifulSoup):
+        urls = list()
+        links = parsed_listing_page.findAll("div", {"class": "card"})
+        
+        for anchor in links:
+            anchor = anchor.find('a', href=True)
+            if "http" in anchor['href']:
+                url = str(anchor['href'])
+            else:
+                url = "https://fullfact.org" + str(anchor['href'])
+            max_claims = self.configuration.maxClaims
+            if 0 < max_claims <= len(urls):
+                break
+            if url not in self.configuration.avoid_urls:
+                urls.append(url)
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         claims = []
+        claim = Claim()
 
-        categories = parsed_claim_review_page.find('ol', {'class': 'breadcrumb col-xs-12'})
-        elems = categories.findAll('a')
-        keywords = []
-        for elem in elems:
-            keywords.append(elem.text)
+        # url
+        claim.url = str(url)
 
-        date = parsed_claim_review_page.find("p", {"class": "date"})
-        date_value = ""
-        if date:
-            date_value = date.find("span").get_text()
+        # souce
+        claim.source = "fullfact"
 
-        # extraction of brief claims
-        brief_conclusion = parsed_claim_review_page.find('div', {"id": "briefClaimConclusion"})
-        box_panel = brief_conclusion.find('div', {"class": "box-panel"})
-        conclusion_divs = box_panel.findAll('div')
-        for conclusion_div in conclusion_divs:
-            try:
-                claim = Claim()
-                claim.set_url(url)
-                claim.set_source("fullfact")
-                claim_text = conclusion_div.find('div', {"class": "col-xs-12 col-sm-6 col-left"}).find('p').text
-                conclusion_text = conclusion_div.find('div', {"class": "col-xs-12 col-sm-6 col-right"}).find('p').text
-                conclusion_text = self._conclusion_processor.extract_conclusion(conclusion_text)
+        # title
+        title = None
+        if parsed_claim_review_page.select( 'body > main > div > div > section > article > h1' ):
+            for tmp in parsed_claim_review_page.select( 'body > main > div > div > section > article > h1' ):
+                title = tmp.text.strip()
+            claim.title = str(title.strip())
 
-                claim.set_claim(claim_text)
-                claim.set_rating(conclusion_text)
-                claim.set_tags(','.join(keywords))
-                claim.set_date_published(date_value)
+        # author 
+        author_list = []
+        author_links = []        
+        if parsed_claim_review_page.select( 'article > section.social-media > div > div > ul > li > span > cite' ): # single author?
+            for author_a in parsed_claim_review_page.select( 'article > section.social-media > div > div > ul > li > span > cite' ):
+                if hasattr( author_a, 'text' ):
+                    author_list.append( author_a.text.strip() )
+                #if hasattr( author_a, 'href' ):
+                #    author_list.append( author_a.text.strip() )
+                #    author_links.append( author_a.attrs['href'] )
+                else:
+                    print( "no author? https://fullfact.org/about/our-team/" )
+                
+        claim.author = ", ".join( author_list )
+        #claim.author_url = ( ", ".join( author_links ) )
+
+        # date
+        datePub = None
+        dateUpd = None
+        date_str = ""
+        if parsed_claim_review_page.select( 'article > div.published-at' ): # updated?
+            for date_ in parsed_claim_review_page.select( 'article > div.published-at' ):
+                if hasattr( date_, 'text' ):
+                    datePub = date_.text.strip()
+                    if "|" in datePub:
+                        split_datePub = datePub.split("|")
+                        if len(split_datePub) > 0:
+                            datePub = split_datePub[0].strip()
+                    date_str = dateparser.parse( datePub ).strftime( "%Y-%m-%d" )
+                    claim.date_published = date_str
+                    claim.date = date_str   
+                else:
+                    print( "no date?" )     
+        
+        # Body descriptioon
+        text = ""
+        if parsed_claim_review_page.select( 'article > p' ):
+            for child in parsed_claim_review_page.select( 'article > p' ):
+                text += " " + child.text
+            body_description = text.strip()
+            claim.body = str(body_description).strip()
+
+        # related links (in page body text <p>)
+        related_links = []
+        if parsed_claim_review_page.select( 'article > p > a' ):
+            for link in parsed_claim_review_page.select( 'article > p > a' ):
+                if hasattr( link, 'href' ):
+                    if 'http' in link['href']:
+                        related_links.append( link['href'] )
+                    else:
+                        related_links.append( "https://fullfact.org" + link['href'] )
+            
+        # related links (in Related fact checks)
+        if parsed_claim_review_page.select( 'section.related-factchecks > div > ul > li > a' ):
+            for link in parsed_claim_review_page.select( 'section.related-factchecks > div > ul > li > a' ):
+                if hasattr( link, 'href' ):
+                    if 'http' in link['href']:
+                        related_links.append( link['href'] )
+                    else:
+                        related_links.append( "https://fullfact.org" + link['href'] )
+
+        if related_links:
+            claim.referred_links = related_links
+  
+       
+        # cannot be found on fullfact:
+        # self.tags = ""
+        # self.author_url = ""
+        # self.date_published = ""
+        # self.same_as = ""
+        # self.rating_value = ""
+        # self.worst_rating = ""
+        # self.best_rating = ""
+        # self.review_author = ""
+        
+
+        # claim # multiple (local) claims: 'article > div > div > div.row.no-gutters.card-body-text > div > div > p' ?
+        claim_text_list = []
+        claim_text = None
+        # rating -> VERDICT: extract_conclusion -> true, false, ...
+        claim_verdict_list = []
+        claim_verdict = None
+                
+        column = "claim" # or verdict:
+        if parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
+            for p in parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
+                if hasattr(p, 'text' ):
+                    if column == "claim":
+                        claim_text_list.append ( p.text.strip() )
+                        if claim_text == None:
+                            claim_text = p.text.strip()
+                        column = "verdict"
+                    else:
+                        rating_word_list = p.text
+                        conclusion_text = self._conclusion_processor.extract_conclusion(rating_word_list)
+                        #print ("conclusion_text: " + conclusion_text)
+                        rating = str(conclusion_text).replace('"', "").strip()
+                        if "." in rating:
+                            split_name = rating.split(".")
+                            if len(split_name) > 0:
+                                rating = split_name[0]
+                        claim_verdict_list.append ( rating )
+                        if claim_verdict == None:
+                            claim_verdict = rating
+                        
+                        column = "claim"
+
+            # First local claim and rating:
+            claim.claim = claim_text
+            claim.rating = claim_verdict
+
+            ## All claims and ratings "comma" separated: get all claims?
+            # claim.claim = ", ".join( claim_text_list )
+            # claim.rating = ", ".join( verdict_text_list )
+
+            # Create multiple claims from the main one and add change then the claim text and verdict (rating): 
+            c = 0
+            while c < len(claim_text_list)-1:
                 claims.append(claim)
-            except Exception as e:
-                continue
+                claims[c].claim = claim_text_list[c]
+                claims[c].rating = claim_verdict_list[c]
+                c +=1                       
 
-        # Extraction of quotes, which often contain claims on pages without
-        quotes = parsed_claim_review_page.findAll('blockquote')
+            #for local_claim in claim_text_list:
+            #    claims[claim[len(claim)]] = claims[claim[len(claim)-1]]
 
-        if len(claims) == 0 or len(quotes) == 0:
-            return claims
 
-        for quote in quotes:
-            claim = Claim()
-            claim.set_url(url)
-            claim.set_source("fullfact")
-            try:
-                p = quote.findAll('p')
-
-                if len(p) == 1:  # if there one paragraph then there is no author nor date
-                    claim.set_claim(p[0].text)
-                    claim.set_tags(','.join(keywords))
-                    claims.append(claim)
-                    continue
-
-                claim_text = ''
-                for x in p[:-1]:  # Sometimes the quote is made of 2 paragraphs or more
-                    claim_text = x.text
-
-                if len(claim_text) < 4:  # if it's too small it is not a claim
-                    continue
-
-                p = p[-1]  # last paragraph always mentions the author and the date
-                author = p.text.split(',')[:-1]  # and there is always a semicolon seperating the two
-                date = p.text.split(',')[-1]
-
-                while not claim_text[0].isalnum():
-                    claim_text = claim_text[1:]
-
-                while not claim_text[-1].isalnum():
-                    claim_text = claim_text[:-1]
-
-                claim.set_claim(claim_text)
-                claim.set_author(''.join(author))
-            except Exception:
-                continue
-
-            try:
-                a = p.find('a')  # usually the date is mentioned with the link where the claim was made
-                date = datetime.strptime(a.text, '%d %B %Y').strftime("%Y-%m-%d")
-                claim.set_refered_links(a['href'])
-                claim.set_date(date)
-            except Exception as e:
-                try:
-                    date = datetime.strptime(date[1:-1], ' %d %B %Y').strftime("%Y-%m-%d")
-                    claim.set_date(date)
-                except Exception as e:
-                    pass
-            claim.set_tags(keywords)
-            claims.append(claim)
-
+        # No Rating? No Claim? 
+        if not claim.claim or not claim.rating:
+            print( url )
+            if not claim.rating: 
+                print ( "-> Rating cannot be found!" )
+            if not claim.claim: 
+                print ( "-> Claim cannot be found!" )
+            return []
+        
+        #return [claim]
         return claims
 
 
