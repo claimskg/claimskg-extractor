@@ -68,7 +68,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
-        #claims = []
+        claims = []
         claim = Claim()
 
         # url
@@ -108,59 +108,16 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             for date_ in parsed_claim_review_page.select( 'article > div.published-at' ):
                 if hasattr( date_, 'text' ):
                     datePub = date_.text.strip()
+                    if "|" in datePub:
+                        split_datePub = datePub.split("|")
+                        if len(split_datePub) > 0:
+                            datePub = split_datePub[0].strip()
                     date_str = dateparser.parse( datePub ).strftime( "%Y-%m-%d" )
                     claim.date_published = date_str
                     claim.date = date_str   
                 else:
                     print( "no date?" )     
         
-        # claim # multiple claims: 'article > div > div > div.row.no-gutters.card-body-text > div > div > p' ?
-        claim_text_list = []
-        claim_text = None
-        # rating -> VERDICT "first word" true, false, ...
-        claim_verdict_list = []
-        claim_verdict = None
-        final_rating = None
-        
-        column = "claim" # or verdict:
-        if parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
-            for p in parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
-                if hasattr(p, 'text' ):
-                    if column == "claim":
-                        claim_text_list.append ( p.text.strip() )
-                        if claim_text == None:
-                            claim_text = p.text.strip()
-                        column = "verdict"
-                    else:
-                        rating_word_list = p.text.split() 
-                        rating = rating_word_list[0]
-                        final_rating = str(rating).replace('.', "").strip()
-                        if final_rating in ["True","False", "Mixture"]: # todo: connection to FullfactConclustionProcessor ?
-                            claim_verdict_list.append ( final_rating )
-                            if claim_verdict == None:
-                                claim_verdict = final_rating
-                        else:
-                            claim_verdict_list.append( "undefined" )
-                            if claim_verdict == None:
-                                claim_verdict = "undefined"
-                        column = "claim"
-            ## All claims and ratings "comma" separated:
-            #claim.claim = ", ".join( claim_text_list )
-            #claim.rating = ", ".join( verdict_text_list )
-            
-            # Or first claim and rating:
-            claim.claim = claim_text
-            claim.rating = claim_verdict
-
-        # rating -> VERDICT "first word" true, false, ...
-        #rating = None
-        #if parsed_claim_review_page.select( 'body > main > div > div > section.col-12.pt-3.col-md-8.pt-md-8.article-column > article > div.mx-n4.mx-sm-0 > div:nth-child(1) > div.row.no-gutters.card-body-text > div:nth-child(2) > div > p' ):
-        #    for rating_span in parsed_claim_review_page.select( 'body > main > div > div > section.col-12.pt-3.col-md-8.pt-md-8.article-column > article > div.mx-n4.mx-sm-0 > div:nth-child(1) > div.row.no-gutters.card-body-text > div:nth-child(2) > div > p' ):
-        #        rating_word_list = rating_span.text.split()
-        #        rating = rating_word_list.first
-        #    claim.rating = str(rating).replace('.', "").strip()
-        ##claim.set_rating_value( rating )
-
         # Body descriptioon
         text = ""
         if parsed_claim_review_page.select( 'article > p' ):
@@ -202,16 +159,69 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # self.best_rating = ""
         # self.review_author = ""
         
+
+        # claim # multiple (local) claims: 'article > div > div > div.row.no-gutters.card-body-text > div > div > p' ?
+        claim_text_list = []
+        claim_text = None
+        # rating -> VERDICT: extract_conclusion -> true, false, ...
+        claim_verdict_list = []
+        claim_verdict = None
+                
+        column = "claim" # or verdict:
+        if parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
+            for p in parsed_claim_review_page.select( 'body > main > div > div > section > article > div > div > div.row.no-gutters.card-body-text > div > div > p' ):
+                if hasattr(p, 'text' ):
+                    if column == "claim":
+                        claim_text_list.append ( p.text.strip() )
+                        if claim_text == None:
+                            claim_text = p.text.strip()
+                        column = "verdict"
+                    else:
+                        rating_word_list = p.text
+                        conclusion_text = self._conclusion_processor.extract_conclusion(rating_word_list)
+                        #print ("conclusion_text: " + conclusion_text)
+                        rating = str(conclusion_text).replace('"', "").strip()
+                        if "." in rating:
+                            split_name = rating.split(".")
+                            if len(split_name) > 0:
+                                rating = split_name[0]
+                        claim_verdict_list.append ( rating )
+                        if claim_verdict == None:
+                            claim_verdict = rating
+                        
+                        column = "claim"
+
+            # First local claim and rating:
+            claim.claim = claim_text
+            claim.rating = claim_verdict
+
+            ## All claims and ratings "comma" separated: get all claims?
+            # claim.claim = ", ".join( claim_text_list )
+            # claim.rating = ", ".join( verdict_text_list )
+
+            # Create multiple claims from the main one and add change then the claim text and verdict (rating): 
+            c = 0
+            while c < len(claim_text_list)-1:
+                claims.append(claim)
+                claims[c].claim = claim_text_list[c]
+                claims[c].rating = claim_verdict_list[c]
+                c +=1                       
+
+            #for local_claim in claim_text_list:
+            #    claims[claim[len(claim)]] = claims[claim[len(claim)-1]]
+
+
         # No Rating? No Claim? 
-        if not claim_text or not rating:
+        if not claim.claim or not claim.rating:
             print( url )
-            if not rating: 
+            if not claim.rating: 
                 print ( "-> Rating cannot be found!" )
-            if not claim_text: 
+            if not claim.claim: 
                 print ( "-> Claim cannot be found!" )
             return []
         
-        return [claim]
+        #return [claim]
+        return claims
 
 
 class FullfactConclustionProcessor:
