@@ -35,14 +35,6 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             categorized by another criterion (e.g. on politifact there is a separate listing for each possible rating).
             :return: Return a list of listing page urls
         """
-        # different_urls = []
-        # different_rating_value = [
-        #     "صحيح", "زائف-جزئياً", "زائف", "خادع", "ساخر", "عنوان-مضلل", "غير-مؤهل"]
-        
-        # url_begin = "https://fatabyyano.net/newsface/"
-        # for value in different_rating_value:
-        #     different_urls.append(url_begin + value + "/")
-        # return different_urls
         return ["https://fatabyyano.net/newsface/0/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
@@ -95,8 +87,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if parsed_listing_page.select( 'div.w-grid-list > article > div > div > a' ):
             for anchor in parsed_listing_page.select( 'div.w-grid-list > article > div > div > a' ):
                 if hasattr( anchor, 'href' ):
-                    #anchor = anchor.find('a', href=True)
-                    url = anchor.attrs['href']  #str(anchor['href'])
+                    url = anchor.attrs['href']
                 max_claims = self.configuration.maxClaims
                 if 0 < max_claims <= len(urls):
                     break
@@ -111,7 +102,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
         claim.set_rating_value(
             self.extract_rating_value(parsed_claim_review_page))
-        claim.set_rating(FatabyyanoFactCheckingSiteExtractor.translate_rating_value(
+        claim.set_rating(self.translate_rating_value(
             self.extract_rating_value(parsed_claim_review_page)))
         claim.set_source("fatabyyano")
         claim.set_author("fatabyyano")
@@ -124,7 +115,10 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_url(url)
         claim.set_tags(self.extract_tags(parsed_claim_review_page))
 
-        return [claim]
+        if claim.rating_value != "":
+            return [claim]
+        else:
+            return []
 
     def is_claim(self, parsed_claim_review_page: BeautifulSoup) -> bool:
         return True
@@ -182,7 +176,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             for img in parsed_claim_review_page.select( 'img' ):
                 if hasattr( img, 'alt' ):
                     if (img.attrs['alt'] != ''):
-                        r = FatabyyanoFactCheckingSiteExtractor.translate_rating_value(str(img.attrs['alt']))
+                        r = self.translate_rating_value(str(img.attrs['alt']))
                         if r != "":
                             break
         if r != "":
@@ -191,8 +185,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             # print("Something wrong in extracting rating value !")
             return ""
 
-    @staticmethod
-    def translate_rating_value(initial_rating_value: str) -> str:
+    def translate_rating_value(self, initial_rating_value: str) -> str:
         dictionary = {
             "صحيح": "TRUE", # correct
             "زائف جزئياً": "MIXTURE", # partially-fake
@@ -205,12 +198,18 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             "محتوى ناقص": "MIXTURE", # incomplete-title
             "مضلل": "FALSE" # misleading
         }
+
+        tmp_split_str = initial_rating_value.split()
+        if  len(tmp_split_str) >= 3:
+            for split_str in tmp_split_str:
+                if self.translate_rating_value(split_str) !="":
+                    initial_rating_value = split_str
+                    break     
         
         if initial_rating_value in dictionary:
                 return dictionary[initial_rating_value]
         else:
             return ""
-
 
     # write this method (and tagme, translate) in an another file cause we can use it in other websites
     @staticmethod
