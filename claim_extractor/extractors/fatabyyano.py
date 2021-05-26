@@ -99,7 +99,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         self.claim = self.extract_claim(parsed_claim_review_page)
         self.review = self.extract_review(parsed_claim_review_page)
 
-        claim = Claim()
+        claim = Claim()        
         claim.set_rating_value(
             self.extract_rating_value(parsed_claim_review_page))
         claim.set_rating(self.translate_rating_value(
@@ -175,10 +175,13 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if parsed_claim_review_page.select( 'img' ):
             for img in parsed_claim_review_page.select( 'img' ):
                 if hasattr( img, 'alt' ):
-                    if (img.attrs['alt'] != ''):
-                        r = self.translate_rating_value(str(img.attrs['alt']))
-                        if r != "":
-                            break
+                    try:
+                        if (img.attrs['alt'] and img.attrs['alt'] != ''):
+                            r = self.translate_rating_value(str(img.attrs['alt']))
+                            if r != "":
+                                break
+                    except KeyError:
+                        print("KeyError: Skip")
         if r != "":
             return r
         else:
