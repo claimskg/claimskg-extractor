@@ -5,6 +5,7 @@ import re
 from typing import *
 
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 from claim_extractor import Claim, Configuration
 from claim_extractor.extractors import FactCheckingSiteExtractor, caching
@@ -34,13 +35,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             categorized by another criterion (e.g. on politifact there is a separate listing for each possible rating).
             :return: Return a list of listing page urls
         """
-        different_urls = []
-        different_rating_value = [
-            "صحيح", "زائف-جزئياً", "زائف", "خادع", "ساخر", "عنوان-مضلل", "غير-مؤهل"]
-        url_begin = "https://fatabyyano.net/newsface/"
-        for value in different_rating_value:
-            different_urls.append(url_begin + value + "/")
-        return different_urls
+        return ["https://fatabyyano.net/newsface/0/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         """
@@ -53,9 +48,10 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             "div.nav-links a.page-numbers span")
         maximum = 1
         for page_number in page_numbers:
-            p = int(page_number.text)
-            if (p > maximum):
-                maximum = p
+            if page_number.text != "التالي":
+                p = int(page_number.text)
+                if (p > maximum):
+                    maximum = p
         return maximum
 
     def retrieve_urls(self, parsed_claim_review_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) -> \
@@ -66,16 +62,38 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             :number_of_page:      --> number_of_page
             :return:              --> la liste des url de toutes les claims
         """
-        url_begin = listing_page_url + "page/"
-        url_end = "/"
-        result = []
-        category = "..."
-        json_params = """{"columns":"3","exclude_items":"none","img_size":"default","ignore_items_size":false,"items_layout":"15632","items_offset":"1","load_animation":"none","overriding_link":"none","post_id":15837,"query_args":{"category_name":""""+category+"""","post_type":["post"],"post_status":["publish"],"tax_query":[{"taxonomy":"category","terms":["religious_related_rumors"],"field":"slug","operator":"IN","include_children":true}],"paged":2},"orderby_query_args":{"orderby":{"date":"DESC"}},"type":"masonry","us_grid_ajax_index":1,"us_grid_filter_params":null,"us_grid_index":1,"_us_grid_post_type":"current_query"}"""
-        data = json.loads(json_params)
-        parsed = caching.post("https://fatabyyano.net/category/religious_related_rumors", data=data,
-                              headers=self.headers)
+        urls = []
+        # First single page:
+        page_contend = caching.get(listing_page_url, headers=self.headers, timeout=5)
+        page = BeautifulSoup(page_contend, "lxml")
+        if page is not None:
+            for ex_url in self.extract_urls(page):
+                urls.append(ex_url)
 
-        return result
+        # All pages >0:
+        for page_number in tqdm(range(2, number_of_pages)):
+            if 0 < self.configuration.maxClaims < len(urls):
+                break
+            url = listing_page_url + "page/" + str(page_number) + "/"
+            page_contend = caching.get(url, headers=self.headers, timeout=5)
+            page = BeautifulSoup(page_contend, "lxml")
+            if page is not None:
+                for ex_url in self.extract_urls(page):
+                    urls.append(ex_url)
+        return urls
+
+    def extract_urls(self, parsed_listing_page: BeautifulSoup):
+        urls = list()
+        if parsed_listing_page.select( 'div.w-grid-list > article > div > div > a' ):
+            for anchor in parsed_listing_page.select( 'div.w-grid-list > article > div > div > a' ):
+                if hasattr( anchor, 'href' ):
+                    url = anchor.attrs['href']
+                max_claims = self.configuration.maxClaims
+                if 0 < max_claims <= len(urls):
+                    break
+                if url not in self.configuration.avoid_urls:
+                    urls.append(url)
+        return urls
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         self.claim = self.extract_claim(parsed_claim_review_page)
@@ -84,7 +102,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
         claim.set_rating_value(
             self.extract_rating_value(parsed_claim_review_page))
-        claim.set_rating(FatabyyanoFactCheckingSiteExtractor.translate_rating_value(
+        claim.set_rating(self.translate_rating_value(
             self.extract_rating_value(parsed_claim_review_page)))
         claim.set_source("fatabyyano")
         claim.set_author("fatabyyano")
@@ -97,7 +115,10 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_url(url)
         claim.set_tags(self.extract_tags(parsed_claim_review_page))
 
-        return [claim]
+        if claim.rating_value != "":
+            return [claim]
+        else:
+            return []
 
     def is_claim(self, parsed_claim_review_page: BeautifulSoup) -> bool:
         return True
@@ -111,8 +132,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             return ""
 
     def extract_review(self, parsed_claim_review_page: BeautifulSoup) -> str:
-        return self.escape(parsed_claim_review_page.select_one(
-            "section.l-section.wpb_row.height_small div[itemprop=\"text\"]").text)
+        return "" #self.escape(parsed_claim_review_page.select_one("section.l-section.wpb_row.height_small div[itemprop=\"text\"]").text)
 
     def extract_links(self, parsed_claim_review_page: BeautifulSoup) -> str:
         links = ""
@@ -151,26 +171,45 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return "fatabyyano"
 
     def extract_rating_value(self, parsed_claim_review_page: BeautifulSoup) -> str:
-        btn = parsed_claim_review_page.select_one(
-            "div.style_badge a.w-btn.us-btn-style_7")
-        if btn:
-            return btn.text
+        r = ""
+        if parsed_claim_review_page.select( 'img' ):
+            for img in parsed_claim_review_page.select( 'img' ):
+                if hasattr( img, 'alt' ):
+                    if (img.attrs['alt'] != ''):
+                        r = self.translate_rating_value(str(img.attrs['alt']))
+                        if r != "":
+                            break
+        if r != "":
+            return r
         else:
             # print("Something wrong in extracting rating value !")
             return ""
 
-    @staticmethod
-    def translate_rating_value(initial_rating_value: str) -> str:
-        return {
-            "صحيح": "TRUE",
-            "زائف جزئياً": "MIXTURE",
-            "عنوان مضلل": "OTHER",  # ?
+    def translate_rating_value(self, initial_rating_value: str) -> str:
+        dictionary = {
+            "صحيح": "TRUE", # correct
+            "زائف جزئياً": "MIXTURE", # partially-fake
+            "عنوان مضلل": "OTHER",  # misleading-title
             "رأي": "OTHER",  # ? (Opinion)
             "ساخر": "OTHER",  # ? (Sarcastique)
-            "غير مؤهل": "FALSE",  # ? (Inéligible)
-            "خادع": "FALSE",  # ? (Trompeur)
-            "زائف": "FALSE"
-        }[initial_rating_value]
+            "غير مؤهل": "FALSE",  # ? (Inéligible) not-qualified
+            "خادع": "FALSE",  # ? (Trompeur) deceptive
+            "زائف": "FALSE", # fake
+            "محتوى ناقص": "MIXTURE", # incomplete-title
+            "مضلل": "FALSE" # misleading
+        }
+
+        tmp_split_str = initial_rating_value.split()
+        if  len(tmp_split_str) >= 3:
+            for split_str in tmp_split_str:
+                if self.translate_rating_value(split_str) !="":
+                    initial_rating_value = split_str
+                    break     
+        
+        if initial_rating_value in dictionary:
+                return dictionary[initial_rating_value]
+        else:
+            return ""
 
     # write this method (and tagme, translate) in an another file cause we can use it in other websites
     @staticmethod
