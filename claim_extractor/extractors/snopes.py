@@ -120,8 +120,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     claim.date = date_str   
                 if dateItems == 'Updated': 
                     dateUpd = dateItems.next.strip()
-                    if (datePub == ''):
-                        datePub = dateItems.next.next.text.strip()
+                    if (dateUpd == ''):
+                        dateUpd = dateItems.next.next.text.strip()
                     date_str = dateparser.parse( dateUpd ).strftime( "%Y-%m-%d" )
                     claim.date = date_str
 
@@ -190,7 +190,10 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if parsed_claim_review_page.select( 'article > div.single-body.card.card-body > p > a' ):
             for link in parsed_claim_review_page.select( 'article > div.single-body.card.card-body > p > a' ):
                 if hasattr( link, 'href' ):
-                    related_links.append( link['href'] )
+                    try:
+                        related_links.append( link['href'] )
+                    except KeyError:
+                        print("KeyError: Skip")
             claim.referred_links = related_links
                 
         # tags
