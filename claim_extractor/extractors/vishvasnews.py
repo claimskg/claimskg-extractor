@@ -271,10 +271,12 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             :text:  --> The text in english after translation
             :return:  --> return a list of claim_entities
         """
-        if text == "":
-            return []
-        tagme.GCUBE_TOKEN = VishvasnewsFactCheckingSiteExtractor.TAGME_API_KEY
-        return tagme.annotate(text)
+        #if text == "":
+        #    return []
+        #tagme.GCUBE_TOKEN = VishvasnewsFactCheckingSiteExtractor.TAGME_API_KEY
+        #return tagme.annotate(text)
+        return []
+
 
     # write this method (and tagme, translate) in an another file cause we can use it in other websites
     @staticmethod
