@@ -14,7 +14,8 @@ count_ = 0
 current_websites = {
     "english": ["snopes", "fullfact", "aap", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck"],
     "portuguese": ["aosfatos", "lupa", "publica", "g1", "efarsas"],
-    "german": ["mimikama", "correctiv"]
+    "german": ["mimikama", "correctiv"],
+    "arabic": ["fatabyyano"]
 }
 
 current_websites_invert = {}

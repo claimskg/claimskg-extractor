@@ -100,10 +100,8 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         self.review = self.extract_review(parsed_claim_review_page)
 
         claim = Claim()        
-        claim.set_rating_value(
+        claim.set_rating(
             self.extract_rating_value(parsed_claim_review_page))
-        claim.set_rating(self.translate_rating_value(
-            self.extract_rating_value(parsed_claim_review_page)))
         claim.set_source("fatabyyano")
         claim.set_author("fatabyyano")
         claim.set_date_published(self.extract_date(parsed_claim_review_page))
@@ -115,7 +113,7 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_url(url)
         claim.set_tags(self.extract_tags(parsed_claim_review_page))
 
-        if claim.rating_value != "":
+        if claim.rating != "":
             return [claim]
         else:
             return []
@@ -188,20 +186,41 @@ class FatabyyanoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             # print("Something wrong in extracting rating value !")
             return ""
 
+    # Translates https://fatabyyano.net/%D8%AF%D9%84%D9%8A%D9%84-%D9%81%D8%AA%D8%A8%D9%8A%D9%86%D9%88%D8%A7/
+    # to Facebook rating system: https://www.facebook.com/business/help/341102040382165
     def translate_rating_value(self, initial_rating_value: str) -> str:
         dictionary = {
-            "صحيح": "TRUE", # correct
-            "زائف جزئياً": "MIXTURE", # partially-fake
-            "عنوان مضلل": "OTHER",  # misleading-title
-            "رأي": "OTHER",  # ? (Opinion)
-            "ساخر": "OTHER",  # ? (Sarcastique)
-            "غير مؤهل": "FALSE",  # ? (Inéligible) not-qualified
-            "خادع": "FALSE",  # ? (Trompeur) deceptive
-            "زائف": "FALSE", # fake
-            "محتوى ناقص": "MIXTURE", # incomplete-title
-            "مضلل": "FALSE" # misleading
-        }
+            # Fake "FALSE"
+            "زائف": "False",
 
+            # Partially-fake "MIXTURE?OTHER"
+            "زائف جزئياً": "Partially False",
+
+            # True "TRUE"    
+            "صحيح": "True",
+
+            # Misleading-title = False Headline: "OTHER"
+            "عنوان مضلل": "Missing context",    
+            
+            # Not eligible "FALSE"
+            "غير مؤهل": "False", 
+
+            # Sarcasm "OTHER"               
+            "ساخر": "Satire",
+
+            # Opinion "MIXTURE?OTHER"             
+            "رأي": "Partially false",           
+            
+            # Deceptive "FALSE"
+            "خادع": "False",  
+            
+            # Incomplete-title "MIXTURE"
+            "محتوى ناقص": "Altered", 
+
+            # Misleading "FALSE"
+            "مضلل": "False" 
+        }
+    
         tmp_split_str = initial_rating_value.split()
         if  len(tmp_split_str) >= 3:
             for split_str in tmp_split_str:
