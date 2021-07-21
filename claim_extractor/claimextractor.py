@@ -12,7 +12,7 @@ default_label = "OTHER"
 
 count_ = 0
 current_websites = {
-    "english": ["snopes", "fullfact", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck"],
+    "english": ["snopes", "fullfact", "aap", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck"],
     "portuguese": ["aosfatos", "lupa", "publica", "g1", "efarsas"],
     "german": ["mimikama", "correctiv"]
 }

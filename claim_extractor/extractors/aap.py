@@ -23,10 +23,14 @@ class AapFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         offset = 1
         links = caching.get(f"https://loadmore.aap.com.au/category?category=6&postOffset={offset}&perPage=100")
         offset = 100
-        while links != "[]":
+        tmp_counter = 0
+        while links != "[]" and tmp_counter < self.configuration.maxClaims:
             parsed_json = json.loads(links)
             for link in parsed_json:
+                tmp_counter += 1
                 urls.append(link['link'])
+                if (self.configuration.maxClaims <= tmp_counter): 
+                    break
             links = caching.get(f"https://loadmore.aap.com.au/category?category=6&postOffset={offset}&perPage=100")
             offset += 100
         return urls
