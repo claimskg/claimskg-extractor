@@ -49,11 +49,17 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         different_urls = []
         different_categories_value = [
             "politics", "society", "world", "viral", "health"]
-        url_begins = ["https://www.vishvasnews.com/english/", "https://www.vishvasnews.com/urdu/",
-                      "https://www.vishvasnews.com/assamese/", "https://www.vishvasnews.com/tamil/",
-                      "https://www.vishvasnews.com/malayalam/"
-            , "https://www.vishvasnews.com/gujarati/", "https://www.vishvasnews.com/telugu/",
-                      "https://www.vishvasnews.com/marathi/", "https://www.vishvasnews.com/odia/"]
+        url_begins = [
+            "https://www.vishvasnews.com/english/",
+            "https://www.vishvasnews.com/urdu/",
+            "https://www.vishvasnews.com/assamese/",
+            "https://www.vishvasnews.com/tamil/",
+            "https://www.vishvasnews.com/malayalam/",
+            "https://www.vishvasnews.com/gujarati/",
+            "https://www.vishvasnews.com/telugu/",
+            "https://www.vishvasnews.com/marathi/",
+            "https://www.vishvasnews.com/odia/"]
+        
         for url in url_begins:
             for value in different_categories_value:
                 different_urls.append(url + value + "/")
@@ -77,14 +83,23 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             :number_of_page:      --> number_of_page
             :return:              --> la liste des url de toutes les claims
         """
+        tmp_counter = 0
         links = []
         select_links = 'ul.listing li div.imagecontent h3 a'
         # links in the static page
         claims = parsed_listing_page.select(
             "div.ajax-data-load " + select_links)
-        for link in claims:
-            if link["href"]:
-                links.append(link["href"])
+
+        if self.configuration.maxClaims >= 1:
+            for link in claims:
+                if link["href"] and tmp_counter < self.configuration.maxClaims:
+                    tmp_counter += 1
+                    links.append(link["href"])
+        else:
+            for link in claims:
+                if link["href"]:
+                    links.append(link["href"])
+
 
         # for links loaded by AJAX
         r = re.compile(
@@ -102,19 +117,34 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         }
 
         response = self.post(url_ajax, data)
+        
+        if self.configuration.maxClaims >= 1:
+            while True and tmp_counter < self.configuration.maxClaims:
+                claims = response.select(select_links)
+                for link in claims:
+                    if link['href'] and tmp_counter < self.configuration.maxClaims:
+                        tmp_counter += 1
+                        links.append(link['href'])
 
-        while True:
-            claims = response.select(select_links)
-            for link in claims:
-                if link['href']:
-                    links.append(link['href'])
+                if response.find("nav"):
+                    data['page'] = data['page'] + 1
+                    response = self.post(url_ajax, data)
+                    continue
+                else:
+                    break
+        else:
+            while True:
+                claims = response.select(select_links)
+                for link in claims:
+                    if link['href']:
+                        links.append(link['href'])
 
-            if response.find("nav"):
-                data['page'] = data['page'] + 1
-                response = self.post(url_ajax, data)
-                continue
-            else:
-                break
+                if response.find("nav"):
+                    data['page'] = data['page'] + 1
+                    response = self.post(url_ajax, data)
+                    continue
+                else:
+                    break
 
         return links
 
@@ -122,7 +152,7 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim = Claim()
         claim_txt = self.extract_claim(parsed_claim_review_page)
         review = self.extract_review(parsed_claim_review_page)
-        rating_value = self.extract_rating_value(parsed_claim_review_page)
+        rating_value = self.extract_rating_value(parsed_claim_review_page, url)
         claim.set_rating(rating_value)
         claim.set_source("Vishvanews")  # auteur de la review
         claim.review_author = self.extract_author(parsed_claim_review_page)
@@ -142,8 +172,12 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         json_claim, json_body = self.extract_entities(claim_txt, review)
         claim.claim_entities = json_claim
         claim.body_entities = json_body
-        return [claim]
 
+        if claim.rating != "":
+            return [claim]
+        else:
+            return []
+        
     def is_claim(self, parsed_claim_review_page: BeautifulSoup) -> bool:
         rating_value = parsed_claim_review_page.select_one(
             "div.selected span")
@@ -244,11 +278,27 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         return ",".join(authors)
 
-    def extract_rating_value(self, parsed_claim_review_page: BeautifulSoup) -> str:
-        btn = parsed_claim_review_page.select_one(
-            "div.selected span")
+    def extract_rating_value(self, parsed_claim_review_page: BeautifulSoup, url: str) -> str:
+        r = "" 
+        detect_lang = "english"
+
+        if url.split("/")[3]: 
+            self.language = url.split("/")[3]
+            detect_lang = url.split("/")[3]
+        else:
+            self.language = "eng"
+
+        btn = parsed_claim_review_page.select_one("div.selected span")
         if btn:
-            return btn.text.strip()
+            if detect_lang != 'english':
+                r = self.translate_rating_value(str(btn.text.replace("\u200e","").strip(" ")))
+                #print("\r" + btn.text.replace("\u200e","").strip(" ") + " => " + r)
+            #if r == "" and ("Misleading" not in btn.text and "False" not in btn.text and "True" not in btn.text):
+            #    print(btn.text.strip(" "))
+            if r != "":
+                return r
+            else:
+                return btn.text.strip()
         else:
             return ""
 
@@ -261,9 +311,47 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return self.escape(self.get_json_format(self.tagme(claim))), self.escape(
             self.get_json_format(self.tagme(review)))
 
-    @staticmethod
-    def translate_rating_value(initial_rating_value: str) -> str:
-        return initial_rating_value
+    # Translates to False, Misleading or True https://www.vishvasnews.com/methodology/ 
+    def translate_rating_value(self, initial_rating_value: str) -> str:
+        dictionary = {
+            # Punjabi:
+            # Misleading 
+            "ਭ੍ਰਮਕ": "Misleading",
+
+            # False
+            "ਫਰਜ਼ੀ": "False",
+
+            # True 
+            "ਸੱਚ" : "True",
+
+            # Uudu:
+            # Misleading 
+            "گمراہ کن": "Misleading",
+
+            # False
+            "جھوٹ": "False",
+
+            # True 
+            "سچ": "True"
+
+            # Assamese, Tamil, malayalam, gujarati, telugu, marathi, odia and bangla same as english:
+        }
+    
+        #tmp_split_str = initial_rating_value.split()
+        #if  len(tmp_split_str) >= 3:
+        #    for split_str in tmp_split_str:
+        #        if self.translate_rating_value(split_str) !="":
+        #            initial_rating_value = split_str
+        #            break     
+        
+        if initial_rating_value in dictionary:
+                return dictionary[initial_rating_value]
+        else:
+            return ""
+
+    #@staticmethod
+    #def translate_rating_value(initial_rating_value: str) -> str:
+    #    return initial_rating_value
 
     @staticmethod
     def tagme(text) -> list:
