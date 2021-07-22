@@ -22,6 +22,8 @@ def get(url: str, headers: Dict[str, str] = None, timeout: int = None):
         page_text = None
     except requests.exceptions.MissingSchema:
         page_text = None
+    except requests.exceptions.ConnectTimeout:
+        page_text = None
     return page_text
 
 

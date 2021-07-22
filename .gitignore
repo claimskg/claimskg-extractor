@@ -9,6 +9,13 @@ __pycache__/
 #IDE project files
 .vscode
 .vscode/launch.json
+
+# Only for local development
 FullfactFactCheckingSiteExtractor_extraction_failed.log
 AapFactCheckingSiteExtractor_extraction_failed.log
 FatabyyanoFactCheckingSiteExtractor_extraction_failed.log
+VishvasnewsFactCheckingSiteExtractor_extraction_failed.log
+SnopesFactCheckingSiteExtractor_extraction_failed.log
+output_dev_fatabyyano.csv
+output_dev_vishvasnews.csv
+output_dev_aap.csv
