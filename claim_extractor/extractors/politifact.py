@@ -27,14 +27,24 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
         page_number = 2
-        while True:
+        while True and ((page_number*30) <= self.configuration.maxClaims):
             url = listing_page_url + "?page=" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
-           if not page:
+            if page is not None:
+                current_parsed_listing_page = BeautifulSoup(page, "lxml")
+            else:
                 break
-            current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls += self.extract_urls(current_parsed_listing_page)
-        return urls
+
+            nav_buttons = current_parsed_listing_page.find_all("section", attrs={'class': 't-row'})
+            nav_buttons = nav_buttons[-1].find_all("li", attrs={'class': 'm-list__item'})
+
+            if len(nav_buttons) == 1:
+                break
+            else:
+                urls += self.extract_urls(current_parsed_listing_page)
+            page_number += 1
+            #print("\rr: " + url)
+        return urls 
     
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()
@@ -54,16 +64,17 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         claim = Claim()
         claim.set_url(url)
-        claim.set_source("politifact")
+        #print("\r" + url)
 
+        claim.set_source("politifact")
 
         # Claim
         title = parsed_claim_review_page.find("div", {"class": "m-statement__quote"})
-        claim.set_claim(title.text)
+        claim.set_claim(title.text.strip())
 
         # title
         title = parsed_claim_review_page.find("h2", {"class": "c-title"})
-        claim.set_title(title.text)
+        claim.set_title(title.text.strip())
         
         # date
         date = parsed_claim_review_page.find('span', {"class": "m-author__date"})
@@ -72,24 +83,69 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_date(date_str)
 
         # rating
+        # https://static.politifact.com/politifact/rulings/meter-mostly-false.jpg
         statement_body=parsed_claim_review_page.find("div", {"class", "m-statement__body"})
         statement_detail = statement_body.find("div", {"class", "c-image"})
         statement_detail_image=statement_detail.find("picture")
         statement_detail_image_alt=statement_detail_image.find("img",{"class", "c-image__original"})
         if statement_detail_image_alt:
-            claim.alternate_name = statement_detail_image_alt['alt']
+            #claim.alternate_name = statement_detail_image_alt['src'].split("rulings/")[1].split(".jpg")[0]            
+            if self.translate_rating_value(statement_detail_image_alt['alt']) != "":
+                claim.rating = self.translate_rating_value(statement_detail_image_alt['alt'])
+            else:
+                claim.rating = statement_detail_image_alt['alt']
 
         # body
         body = parsed_claim_review_page.find("article", {"class": "m-textblock"})
-        claim.set_body(body.get_text())
+        #body.find("div", {"class": "artembed"}).decompose()
+        #claim.set_body(body.get_text())
+
+        
+
+        
+        
+        text =""
+        if parsed_claim_review_page.select( 'main > section > div.t-row__center > article.m-textblock' ):
+            for child in parsed_claim_review_page.select( 'main > section > div.t-row__center > article.m-textblock' ):
+                for element in child.contents:
+                    if (element.name == "div"):
+                        valid = True
+                        # check for illegal JS element in artembed (tag):
+                        if (hasattr( element, 'class' )):
+                            try:
+                                if ('class' in element.attrs):
+                                    if (element.attrs['class'][0] == "artembed"):
+                                        if (element.text.startswith("\r\nwindow.gciAnalyticsUAID")):
+                                            valid = False
+                            except KeyError:
+                                print("KeyError: Skip")
+                    else:
+                        valid = True
+                        if hasattr( element, 'text' ):
+                            #if (element.text == "We rate this claim False." and url == "https://www.politifact.com/staff/kelsey-tamakloe/"):
+                            if (url == "https://www.politifact.com/staff/kelsey-tamakloe/"):
+                                print("\r" + str(element.text))
+                    if (valid == True):
+                        if (element):
+                            if (hasattr( element, 'text' )):
+                                text += " " + str(element.text)
+                            else:
+                                text += " " + str(element)
+
+            body_description = text.strip()
+            claim.body = str(body_description).strip()
 
         # author
-        statement_meta = parsed_claim_review_page.find("div", {"class": "m-statement__meta"})
-        if statement_meta:
-            author = statement_meta.find("a").text
+        author_meta = parsed_claim_review_page.find("div", {"class": "m-author__content"})
+        if author_meta:
+            author = author_meta.find("a").text
             claim.set_author(author)
+            author_url = author_meta.find("a")
+            if author_url.attrs["href"] != "":
+                claim.author_url = "https://www.politifact.com" + author_url.attrs["href"]
 
         # date published
+        statement_meta = parsed_claim_review_page.find("div", {"class": "m-statement__meta"})
         if statement_meta:
             meta_text = statement_meta.text
             if "on" in meta_text:
@@ -100,13 +156,16 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 date = search_dates(meta_text)
                 if date:
                     date = date[0][1].strftime("%Y-%m-%d")
-                    claim.setDatePublished(date)
+                    claim.date = date
         
         # related links
         div_tag = parsed_claim_review_page.find("article", {"class": "m-textblock"})
         related_links = []
         for link in body.find_all('a', href=True):
-            related_links.append(link['href'])
+            if (link['href'][0] == "/"):
+                    related_links.append("https://www.politifact.com" + link['href'])
+            else:
+                related_links.append(link['href'])
         claim.set_refered_links(related_links)
 
         claim.set_claim(parsed_claim_review_page.find("div", {"class": "m-statement__quote"}).text.strip())
@@ -129,7 +188,17 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         return [claim]
 
-
-
-
-
+    def translate_rating_value(self, initial_rating_value: str) -> str:
+        dictionary = {
+            "true": "True",
+            "mostly-true": "Mostly True",
+            "half-true": "Half False",
+            "barely-true": "Mostly False",
+            "false": "False",
+            "pants-fire": "Pants on Fire"
+        }
+    
+        if initial_rating_value in dictionary:
+                return dictionary[initial_rating_value]
+        else:
+            return ""
