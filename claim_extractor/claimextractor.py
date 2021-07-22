@@ -14,7 +14,8 @@ count_ = 0
 current_websites = {
     "english": ["snopes", "fullfact", "aap", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck"],
     "portuguese": ["aosfatos", "lupa", "publica", "g1", "efarsas"],
-    "german": ["mimikama", "correctiv"]
+    "german": ["mimikama", "correctiv"],
+    "arabic": ["fatabyyano"]
 }
 
 current_websites_invert = {}
@@ -51,3 +52,4 @@ def get_claims(configuration):
         data_frame.to_csv( configuration.output, encoding="utf-8" )
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
         data_frame.to_csv( configuration.output_dev, encoding="utf-8", sep=";", index=True )
+        data_frame.to_csv( configuration.output_sample, encoding="utf-8")
