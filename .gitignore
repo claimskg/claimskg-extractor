@@ -24,3 +24,5 @@ output_dev_aap.csv
 output_dev_fullfact.csv
 output_dev_snopes.csv
 output_dev_politifact.csv
+TruthorfictionFactCheckingSiteExtractor_extraction_failed.log
+output_dev_truthorfiction.csv
