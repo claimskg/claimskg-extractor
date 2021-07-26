@@ -23,12 +23,16 @@ def get_all_claims(criteria):
         if 0 < criteria.maxClaims <= len(urls_):
             break
 
-        url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+        # https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=
+        #url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+        url = "https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=" + str(page_number)
+        
         try:
             page = requests.get(url, headers=headers, timeout=5)
             soup = BeautifulSoup(page.text, "lxml")
             soup.prettify()
             links = soup.findAll("div", {"class": "article-content"})
+            #block-mainpagecontent > div > div > div.view-content > div > div:nth-child(1) > div:nth-child(1) > article > div > a > div > article
             if (len(links) != 0) or (links != last_page):
                 for anchor in links:
                     anchor = anchor.find('a', href=True)
@@ -142,19 +146,24 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         super().__init__(configuration)
 
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ["https://africacheck.org/latest-reports/page/1/"]
+        #return ["https://africacheck.org/latest-reports/page/1/"]
+        return ["https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=0"]
+        
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        last_page_link = parsed_listing_page.findAll("a", {"class": "page-numbers"})[-2]['href']
-        page_re = re.compile("https://africacheck.org/latest-reports/page/([0-9]+)/")
-        max_page = int(page_re.match(last_page_link).group(1))
+        last_page_link = parsed_listing_page.findAll("a", {"title": "Go to last page"})[0]['href']
+        max_page = int(last_page_link.replace("?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&search_api_fulltext=&sort_bef_combine=created_DESC&page=",""))
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
-        for page_number in tqdm(range(2, number_of_pages)):
-            url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+        for page_number in tqdm(range(0, number_of_pages)):
+            # each page 9 articles:
+            if (((page_number*9)-9) >= self.configuration.maxClaims):
+                break
+            #url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+            url = "https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
             urls += self.extract_urls(current_parsed_listing_page)
@@ -162,10 +171,10 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()
-        links = parsed_listing_page.findAll("div", {"class": "article-content"})
+        links = parsed_listing_page.findAll("div", {"class": "node__content"})
         for anchor in links:
             anchor = anchor.find('a', href=True)
-            url = str(anchor['href'])
+            url = "https://africacheck.org" + str(anchor['href'])
             max_claims = self.configuration.maxClaims
             if 0 < max_claims <= len(urls):
                 break
@@ -185,10 +194,12 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_title(global_title_text)
 
         # date
-        date = parsed_claim_review_page.find('time')
+        date = parsed_claim_review_page.find("span", {"class": "published"}).next
         global_date_str = ""
         if date:
-            global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
+            # global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
+            # TODO FASTER without date()!
+            global_date_str = search_dates(date)[0][1].strftime("%Y-%m-%d")
             claim.set_date(global_date_str)
 
         # rating
@@ -203,18 +214,52 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
                     'span').get_text()
 
+        # If still no rathing value, try to extract from picture name
+        if (global_truth_rating == ""):
+            filename =""
+            if parsed_claim_review_page.select( 'article > div > div > div > div > p > img' ):
+                for child in parsed_claim_review_page.select( 'article > div > div > div > div > p > img' ):
+                    if (hasattr( child, 'src' )):
+                        try:
+                            filename=child['src']
+                            continue
+                        except KeyError:
+                            print("KeyError: Skip")
+            
+            if (filename != ""):
+                global_truth_rating = filename.split("_")[1].strip(".png")                        
+
         claim.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip())
 
         # author
-        author = parsed_claim_review_page.find("div", {"class": "sharethefacts-speaker-name"})
+        author = parsed_claim_review_page.find("div", {"class": "author-details"})
         if author:
             claim.set_author(author.get_text())
 
+        if parsed_claim_review_page.select( 'div.author-details > a > h4' ):
+                for child in parsed_claim_review_page.select( 'div.author-details > a > h4' ):
+                    try:
+                        claim.author = child.get_text()
+                        continue
+                    except KeyError:
+                        print("KeyError: Skip")
+
+        if parsed_claim_review_page.select( 'div.author-details > a' ):
+                for child in parsed_claim_review_page.select( 'div.author-details > a' ):
+                    try:
+                        claim.author_url = child['href']
+                        continue
+                    except KeyError:
+                        print("KeyError: Skip")
+
         # when there is no json
 
-        date = parsed_claim_review_page.find("time", {"class": "datetime"})
-        if date:
-            claim.set_date(date.get_text())
+        # date = parsed_claim_review_page.find("time", {"class": "datetime"})
+        #if date:
+        #    claim.set_date(date.get_text())
+
+        if (url == "https://africacheck.org/fact-checks/reports/state-emergency-would-not-strip-ramaphosas-powers-and-make-dlamini-zuma"):
+            print("ws")
 
         tags = []
 
@@ -231,6 +276,10 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         inline_ratings = parsed_claim_review_page.findAll("div", {"class", "inline-rating"})
         entry_section = parsed_claim_review_page.find("section", {"class", "entry-content"})  # type: Tag
+        #block-mainpagecontent > article > div > div.cell.medium-8.article--main > div > div.clearfix.text-formatted.field.field--name-body.field--type-text-with-summary.field--label-hidden.field__item
+        
+        #block-mainpagecontent > article > div > div.cell.medium-8.article--main > div > div
+
         entry_section_full_text = entry_section.text
 
         # There are several claims checked within the page. Common date, author, tags ,etc.
