@@ -143,8 +143,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def __init__(self, configuration: Configuration):
         super().__init__(configuration)
 
-    def retrieve_listing_page_urls(self) -> List[str]:
-        #return ["https://africacheck.org/latest-reports/page/1/"]
+    def retrieve_listing_page_urls(self) -> List[str]:        
         return ["https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=0"]
         
 
@@ -251,7 +250,6 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     except KeyError:
                         print("KeyError: Skip")
         else:
-
             # alternative rating (If there is no article--aside box with verdict)    
             global_truth_rating = ""
             if parsed_claim_review_page.find("div", {"class": "verdict-stamp"}):
@@ -263,9 +261,6 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 if parsed_claim_review_page.find("div", {"class": "indicator"}).find('span'):
                     global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
                         'span').get_text()
-
-            #if (url == "https://africacheck.org/fact-checks/fbchecks/beware-details-viral-message-about-discovery-health-and-oxygen-tanks-covid-19"):
-            #    print("ws")
 
             # If still no rathing value, try to extract from picture name
             if (global_truth_rating == ""):
@@ -288,8 +283,6 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                         global_truth_rating = filename_split[0]
                     else:
                         global_truth_rating = filename_split[len(filename_split)-1]
-                    
-                    #global_truth_rating = filename_split[0]                 
 
                 claim.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip().replace("pfalse","false").replace("-","").capitalize())
         
@@ -298,47 +291,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             print ("\n Rating:" + claim.rating)
             claim.rating = ""
             
- ###########
-        
-        # # There are several claims checked within the page. Common date, author, tags ,etc.
-        # if inline_ratings and len(inline_ratings) > 0:
-        #     entry_contents = entry_section.contents  # type : List[Tag]
-        #     current_index = 0
-
-        #     # First we extract the bit of text common to everything until we meed a sub-section
-        #     body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
-        #     claim.set_body(body_text)
-        #     claim.set_refered_links(links)
-
-        #     while current_index < len(entry_contents):
-        #         current_index = forward_until_inline_rating(entry_contents, current_index)
-        #         inline_rating_div = entry_contents[current_index]
-        #         if isinstance(inline_rating_div, NavigableString):
-        #             break
-        #         claim_text = inline_rating_div.find("p", {"class": "claim-content"}).text
-        #         inline_rating = inline_rating_div.find("div", {"class", "indicator"}).find("span").text
-        #         previous_current_index = current_index
-        #         inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
-        #                                                                                              current_index)
-        #         if previous_current_index == current_index:
-        #             current_index += 1
-        #         inline_claim = Claim()
-        #         inline_claim.set_source("africacheck")
-        #         inline_claim.set_claim(claim_text)
-        #         inline_claim.set_rating(inline_rating)
-        #         inline_claim.set_refered_links(",".join(inline_links))
-        #         inline_claim.set_body(inline_body_text)
-        #         inline_claim.set_tags(", ".join(tags))
-        #         inline_claim.set_date(global_date_str)
-        #         inline_claim.set_url(url)
-        #         if author:
-        #             inline_claim.set_author(author.get_text())
-        #         inline_claim.set_title(global_title_text)
-
-        #         local_claims.append(inline_claim)
-        
-
-        # body
+         # body
         body = parsed_claim_review_page.find("div", {"class": "article--main"})
         claim.set_body(body.get_text())
 
@@ -346,10 +299,8 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         related_links = []
         for link in body.findAll('a', href=True):
             related_links.append(link['href'])
-        claim.related_links = related_links
+        claim.set_refered_links(related_links)
 
-        # local_claims.append(claim)
-        # return local_claims
         if claim.rating:
             return [claim]
         else:
