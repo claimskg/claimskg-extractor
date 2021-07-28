@@ -63,11 +63,21 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         article = parsed_claim_review_page.find("article")
 
         # date
-
         date_ = parsed_claim_review_page.find('meta', {"property": "article:published_time"})['content']
         if date_:
             date_str = date_.split("T")[0]
             claim.set_date(date_str)
+
+        # author
+        author_ = parsed_claim_review_page.find('meta', {"name": "author"})['content']
+        if author_:
+            author_str = author_.split("T")[0]
+            claim.set_author(author_str)
+
+        ## auth link        
+        author_url = parsed_claim_review_page.find('a', {"class": "url fn n"})['href']
+        if author_url:
+            claim.author_url = author_url
 
         # body
         content = [tag for tag in article.contents if not isinstance(tag, NavigableString)]
@@ -99,12 +109,15 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             else:
                 claim.set_rating(rating_text)
                 claim.set_claim(claim_text)
-
+        
+        # tags
         tags = []
+        if parsed_claim_review_page.select('footer > span.tags-links > a'):
+            for link in parsed_claim_review_page.select('footer > span.tags-links > a'):
+                if hasattr(link, 'href'):
+                    #tag_link = link['href']
+                    tags.append(link.text)
 
-        for tag in parsed_claim_review_page.findAll("meta", {"property", "article:tags"}):
-            tag_str = tag['content']
-            tags.append(tag_str)
         claim.set_tags(", ".join(tags))
 
         return [claim]
