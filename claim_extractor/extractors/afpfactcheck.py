@@ -49,6 +49,8 @@ class AfpfactcheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         str]:
         urls = self.extract_urls(parsed_listing_page)
         for page_number in trange(1, number_of_pages):
+            if ((page_number*15) + 14 >= self.configuration.maxClaims):
+                break
             url = listing_page_url + "?page=" + str(int(page_number))
             page = caching.get(url, headers=self.headers, timeout=20)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
@@ -102,6 +104,8 @@ class AfpfactcheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             claim.set_date(data['@graph'][0]['itemReviewed']['datePublished'])
         except Exception:
             pass
+        except KeyError:
+            pass
 
         try:
             date = data['@graph'][0]['datePublished']
@@ -118,9 +122,10 @@ class AfpfactcheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             try:
                 if child.name == 'aside':
                     continue
-                elems = child.findAll('a')
-                for elem in elems:
-                    links.append(elem['href'])
+                if (child != "\n" and not " " ):
+                    elems = child.findAll('a')
+                    for elem in elems:
+                        links.append(elem['href'])
             except Exception as e:
                 continue
         claim.set_refered_links(links)

@@ -219,7 +219,7 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
             # Create multiple claims from the main one and add change then the claim text and verdict (rating):
             c = 0
-            while c < len(claim_text_list)-1:
+            while c <= len(claim_text_list)-1:
                 claims.append(claim)
                 claims[c].claim = claim_text_list[c]
                 claims[c].rating = claim_verdict_list[c]

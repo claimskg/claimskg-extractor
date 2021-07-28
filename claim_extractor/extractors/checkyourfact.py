@@ -19,11 +19,14 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return ["https://checkyourfact.com/page/1/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        count = 26
+        count = 1
         url = "https://checkyourfact.com/page/" + str(count + 1)
         result = caching.get(url, headers=self.headers, timeout=10)
         if result:
             while result:
+                # each page 20 articles:
+                if (((count+1)*20)-20 >= self.configuration.maxClaims):
+                    break
                 count += 1
                 url = "https://checkyourfact.com/page/" + str(count)
                 result = caching.get(url, headers=self.headers, timeout=10)
@@ -75,6 +78,15 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
         url_date = url.replace("https://checkyourfact.com/", "").replace("/", " ").split(" ")
         claim.set_date(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
+
+        # author & author_url
+        if parsed_claim_review_page.select('detail > article > author'):
+            for author in parsed_claim_review_page.select('detail > article > author'):
+                if (hasattr(author,"data-slug")):
+                    author_str = author.text.split("|")[0].strip().split("\n")[0]
+                    claim.author = author_str
+                    claim.author_url = "https://checkyourfact.com/author/" + author['data-slug']
+                    break
 
         # body
         body = parsed_claim_review_page.find("article")

@@ -35,9 +35,11 @@ def main(argv):
         for opt, arg in opts:
             if opt == '--website':
                 criteria.website = arg
-
             if opt == '--maxclaims':
                 criteria.maxClaims = int(arg)
+                if criteria.website != "":
+                    criteria.setOutputDev("samples/output_dev_" + criteria.website + ".csv")
+                    criteria.setOutputSample("samples/output_sample_" + criteria.website + ".csv")
             if opt == '--annotation-api':
                 criteria.annotator_uri = arg
 
