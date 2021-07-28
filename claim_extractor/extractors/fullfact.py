@@ -228,10 +228,6 @@ class FullfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             # for local_claim in claim_text_list:
             #    claims[claim[len(claim)]] = claims[claim[len(claim)-1]]
 
-
-        #if ( url == "https://fullfact.org/online/daily-cases-vaccine-coverage/"):
-        #    print("x")
-
         # No Rating? No Claim?
         if not claim.claim or not claim.rating:
             print(url)
