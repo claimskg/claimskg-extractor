@@ -23,12 +23,14 @@ def get_all_claims(criteria):
         if 0 < criteria.maxClaims <= len(urls_):
             break
 
-        url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+        url = "https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=" + str(page_number)
+        
         try:
             page = requests.get(url, headers=headers, timeout=5)
             soup = BeautifulSoup(page.text, "lxml")
             soup.prettify()
             links = soup.findAll("div", {"class": "article-content"})
+
             if (len(links) != 0) or (links != last_page):
                 for anchor in links:
                     anchor = anchor.find('a', href=True)
@@ -142,19 +144,24 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         super().__init__(configuration)
 
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ["https://africacheck.org/latest-reports/page/1/"]
+        #return ["https://africacheck.org/latest-reports/page/1/"]
+        return ["https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=0"]
+        
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        last_page_link = parsed_listing_page.findAll("a", {"class": "page-numbers"})[-2]['href']
-        page_re = re.compile("https://africacheck.org/latest-reports/page/([0-9]+)/")
-        max_page = int(page_re.match(last_page_link).group(1))
+        last_page_link = parsed_listing_page.findAll("a", {"title": "Go to last page"})[0]['href']
+        max_page = int(last_page_link.replace("?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&search_api_fulltext=&sort_bef_combine=created_DESC&page=",""))
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
-        for page_number in tqdm(range(2, number_of_pages)):
-            url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+        for page_number in tqdm(range(0, number_of_pages)):
+            # each page 9 articles:
+            if ((page_number*9) + 18 >= self.configuration.maxClaims):
+                break
+            #url = "https://africacheck.org/latest-reports/page/" + str(page_number) + "/"
+            url = "https://africacheck.org/search?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&page=" + str(page_number)
             page = caching.get(url, headers=self.headers, timeout=5)
             current_parsed_listing_page = BeautifulSoup(page, "lxml")
             urls += self.extract_urls(current_parsed_listing_page)
@@ -162,10 +169,10 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
         urls = list()
-        links = parsed_listing_page.findAll("div", {"class": "article-content"})
+        links = parsed_listing_page.findAll("div", {"class": "node__content"})
         for anchor in links:
             anchor = anchor.find('a', href=True)
-            url = str(anchor['href'])
+            url = "https://africacheck.org" + str(anchor['href'])
             max_claims = self.configuration.maxClaims
             if 0 < max_claims <= len(urls):
                 break
@@ -185,142 +192,192 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         claim.set_title(global_title_text)
 
         # date
-        date = parsed_claim_review_page.find('time')
+        date = parsed_claim_review_page.find("span", {"class": "published"}).next
         global_date_str = ""
         if date:
-            global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
+            # global_date_str = search_dates(date['datetime'].split(" ")[0])[0][1].strftime("%Y-%m-%d")
+            global_date_str = search_dates(date)[0][1].strftime("%Y-%m-%d")
             claim.set_date(global_date_str)
 
-        # rating
-        global_truth_rating = ""
-        if parsed_claim_review_page.find("div", {"class": "verdict-stamp"}):
-            global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict-stamp"}).get_text()
-        if parsed_claim_review_page.find("div", {"class": "verdict"}):
-            global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict"}).get_text()
-        if parsed_claim_review_page.find("div", {"class": "indicator"}):
-            global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).get_text()
-            if parsed_claim_review_page.find("div", {"class": "indicator"}).find('span'):
-                global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
-                    'span').get_text()
-
-        claim.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip())
-
         # author
-        author = parsed_claim_review_page.find("div", {"class": "sharethefacts-speaker-name"})
+        author = parsed_claim_review_page.find("div", {"class": "author-details"})
         if author:
             claim.set_author(author.get_text())
 
-        # when there is no json
+        if parsed_claim_review_page.select( 'div.author-details > a > h4' ):
+                for child in parsed_claim_review_page.select( 'div.author-details > a > h4' ):
+                    try:
+                        claim.author = child.get_text()
+                        continue
+                    except KeyError:
+                        print("KeyError: Skip")
 
-        date = parsed_claim_review_page.find("time", {"class": "datetime"})
-        if date:
-            claim.set_date(date.get_text())
+        if parsed_claim_review_page.select( 'div.author-details > a' ):
+                for child in parsed_claim_review_page.select( 'div.author-details > a' ):
+                    try:
+                        claim.author_url = child['href']
+                        continue
+                    except KeyError:
+                        print("KeyError: Skip")
 
+        # tags
         tags = []
 
         for tag in parsed_claim_review_page.findAll('meta', {"property": "article:tag"}):
             tags.append(tag["content"])
         claim.set_tags(", ".join(tags))
+       
+        # claim
+        entry_section = parsed_claim_review_page.find("section", {"class", "cell"}) 
+        verdict_box = parsed_claim_review_page.find("div", {"class", "article-details__verdict"})
+        
+        if verdict_box and len(verdict_box) > 0 and "Verdict" in verdict_box.text:
+            report_claim_div = parsed_claim_review_page.find("div", {"class": "field--name-field-claims"})
+            if report_claim_div:
+                claim.set_claim(report_claim_div.get_text())
+            else:
+                claim.set_claim(claim.title)
+            
+            # rating
+            inline_ratings = parsed_claim_review_page.findAll("div", {"class", "rating"})
 
-        global_claim_text = ""
-        report_claim_div = parsed_claim_review_page.find("div", {"class": "report-claim"})
-        if report_claim_div:
-            claim.set_claim(report_claim_div.find("p").get_text())
+            if inline_ratings:
+                if (hasattr( inline_ratings[0], 'class')):
+                    try:
+                        if ('class' in inline_ratings[0].attrs):
+                            if (inline_ratings[0].attrs['class'][1]):
+                                rating_tmp = inline_ratings[0].attrs['class'][1]
+                                claim.rating = rating_tmp.replace('rating--','').replace("-","").capitalize()
+                    except KeyError:
+                        print("KeyError: Skip")
         else:
-            claim.set_claim(claim.title)
 
-        inline_ratings = parsed_claim_review_page.findAll("div", {"class", "inline-rating"})
-        entry_section = parsed_claim_review_page.find("section", {"class", "entry-content"})  # type: Tag
-        entry_section_full_text = entry_section.text
+            # alternative rating (If there is no article--aside box with verdict)    
+            global_truth_rating = ""
+            if parsed_claim_review_page.find("div", {"class": "verdict-stamp"}):
+                global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict-stamp"}).get_text()
+            if parsed_claim_review_page.find("div", {"class": "verdict"}):
+                global_truth_rating = parsed_claim_review_page.find("div", {"class": "verdict"}).get_text()
+            if parsed_claim_review_page.find("div", {"class": "indicator"}):
+                global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).get_text()
+                if parsed_claim_review_page.find("div", {"class": "indicator"}).find('span'):
+                    global_truth_rating = parsed_claim_review_page.find("div", {"class": "indicator"}).find(
+                        'span').get_text()
 
-        # There are several claims checked within the page. Common date, author, tags ,etc.
-        if inline_ratings and len(inline_ratings) > 0:
-            entry_contents = entry_section.contents  # type : List[Tag]
-            current_index = 0
+            #if (url == "https://africacheck.org/fact-checks/fbchecks/beware-details-viral-message-about-discovery-health-and-oxygen-tanks-covid-19"):
+            #    print("ws")
 
-            # First we extract the bit of text common to everything until we meed a sub-section
-            body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
-            claim.set_body(body_text)
-            claim.set_refered_links(links)
+            # If still no rathing value, try to extract from picture name
+            if (global_truth_rating == ""):
+                filename =""
+                if parsed_claim_review_page.select( 'div.hero__image > picture' ):
+                    for child in parsed_claim_review_page.select( 'div.hero__image > picture' ):
+                        # child.contents[1].attrs['srcset']
+                        if (hasattr( child, 'contents' )):
+                            try:
+                                filename=child.contents[1].attrs['srcset']
+                                continue
+                            except KeyError:
+                                print("KeyError: Skip")
+                
+                if (filename != ""):
+                    filename_split = filename.split("/")
+                    filename_split = filename_split[len(filename_split)-1].split(".png")
+                    filename_split = filename_split[0].split("_")
+                    if len(filename_split) == 1:
+                        global_truth_rating = filename_split[0]
+                    else:
+                        global_truth_rating = filename_split[len(filename_split)-1]
+                    
+                    #global_truth_rating = filename_split[0]                 
 
-            while current_index < len(entry_contents):
-                current_index = forward_until_inline_rating(entry_contents, current_index)
-                inline_rating_div = entry_contents[current_index]
-                if isinstance(inline_rating_div, NavigableString):
-                    break
-                claim_text = inline_rating_div.find("p", {"class": "claim-content"}).text
-                inline_rating = inline_rating_div.find("div", {"class", "indicator"}).find("span").text
-                previous_current_index = current_index
-                inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
-                                                                                                     current_index)
-                if previous_current_index == current_index:
-                    current_index += 1
-                inline_claim = Claim()
-                inline_claim.set_source("africacheck")
-                inline_claim.set_claim(claim_text)
-                inline_claim.set_rating(inline_rating)
-                inline_claim.set_refered_links(",".join(inline_links))
-                inline_claim.set_body(inline_body_text)
-                inline_claim.set_tags(", ".join(tags))
-                inline_claim.set_date(global_date_str)
-                inline_claim.set_url(url)
-                if author:
-                    inline_claim.set_author(author.get_text())
-                inline_claim.set_title(global_title_text)
+                claim.set_rating(str(re.sub('[^A-Za-z0-9 -]+', '', global_truth_rating)).lower().strip().replace("pfalse","false").replace("-","").capitalize())
+        
+        if (not self.rating_value_is_valid(claim.rating)):
+            print ("\nURL: " + url)
+            print ("\n Rating:" + claim.rating)
+            claim.rating = ""
+            
+ ###########
+        
+        # # There are several claims checked within the page. Common date, author, tags ,etc.
+        # if inline_ratings and len(inline_ratings) > 0:
+        #     entry_contents = entry_section.contents  # type : List[Tag]
+        #     current_index = 0
 
-                local_claims.append(inline_claim)
-        elif "PROMISE:" in entry_section_full_text and "VERDICT:" in entry_section_full_text:
-            entry_contents = entry_section.contents  # type : List[Tag]
-            current_index = 0
+        #     # First we extract the bit of text common to everything until we meed a sub-section
+        #     body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
+        #     claim.set_body(body_text)
+        #     claim.set_refered_links(links)
 
-            # First we extract the bit of text common to everything until we meed a sub-section
-            body_text, links, current_index = get_text_and_links_until_next_header(entry_contents, current_index)
-            claim.set_body(body_text)
-            claim.set_refered_links(links)
+        #     while current_index < len(entry_contents):
+        #         current_index = forward_until_inline_rating(entry_contents, current_index)
+        #         inline_rating_div = entry_contents[current_index]
+        #         if isinstance(inline_rating_div, NavigableString):
+        #             break
+        #         claim_text = inline_rating_div.find("p", {"class": "claim-content"}).text
+        #         inline_rating = inline_rating_div.find("div", {"class", "indicator"}).find("span").text
+        #         previous_current_index = current_index
+        #         inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
+        #                                                                                              current_index)
+        #         if previous_current_index == current_index:
+        #             current_index += 1
+        #         inline_claim = Claim()
+        #         inline_claim.set_source("africacheck")
+        #         inline_claim.set_claim(claim_text)
+        #         inline_claim.set_rating(inline_rating)
+        #         inline_claim.set_refered_links(",".join(inline_links))
+        #         inline_claim.set_body(inline_body_text)
+        #         inline_claim.set_tags(", ".join(tags))
+        #         inline_claim.set_date(global_date_str)
+        #         inline_claim.set_url(url)
+        #         if author:
+        #             inline_claim.set_author(author.get_text())
+        #         inline_claim.set_title(global_title_text)
 
-            while current_index < len(entry_contents):
-                inline_rating_div = entry_contents[current_index]
-                if isinstance(inline_rating_div, NavigableString):
-                    break
-                claim_text = entry_contents[current_index + 2].span.text
-                inline_rating = entry_contents[current_index + 4].span.text
-                current_index += 5
-                previous_current_index = current_index
-                inline_body_text, inline_links, current_index = get_text_and_links_until_next_header(entry_contents,
-                                                                                                     current_index)
-                if previous_current_index == current_index:
-                    current_index += 1
-                inline_claim = Claim()
-                inline_claim.set_source("africacheck")
-                inline_claim.set_claim(claim_text)
-                inline_claim.set_rating(inline_rating)
-                inline_claim.set_refered_links(",".join(inline_links))
-                inline_claim.set_body(inline_body_text)
-                inline_claim.set_tags(", ".join(tags))
-                inline_claim.set_date(global_date_str)
-                inline_claim.set_url(url)
-                if author:
-                    inline_claim.set_author(author.get_text())
-                inline_claim.set_title(global_title_text)
+        #         local_claims.append(inline_claim)
+        
 
-                local_claims.append(inline_claim)
+        # body
+        body = parsed_claim_review_page.find("div", {"class": "article--main"})
+        claim.set_body(body.get_text())
 
+        # related links
+        related_links = []
+        for link in body.findAll('a', href=True):
+            related_links.append(link['href'])
+        claim.related_links = related_links
+
+        # local_claims.append(claim)
+        # return local_claims
+        if claim.rating:
+            return [claim]
         else:
-            # body
-            body = parsed_claim_review_page.find("div", {"id": "main"})
-            claim.set_body(body.get_text())
+            return []
 
-            # related links
-            divTag = parsed_claim_review_page.find("div", {"id": "main"})
-            related_links = []
-            for link in divTag.findAll('a', href=True):
-                related_links.append(link['href'])
-            claim.set_refered_links(",".join(related_links))
-
-        local_claims.append(claim)
-
-        return local_claims
-
+    def rating_value_is_valid(self, rating_value: str) -> str:
+        dictionary = {
+            "Correct": "1",
+            "Mostlycorrect": "1",
+            "Unproven": "1",
+            "Misleading": "1",
+            "Exaggerated": "1",
+            "Understated": "1",
+            "Incorrect": "1",
+            "Checked": "1",
+            "True": "1",
+            "False": "1",
+            "Partlyfalse": "1",
+            "Partlytrue": "1",
+            "Fake": "1",
+            "Scam": "1",
+            "Satire": "1"
+        }
+    
+        if rating_value in dictionary:
+                return dictionary[rating_value]
+        else:
+            return ""
 
 def get_text_and_links_until_next_header(contents: List[Tag], current_index) -> (Tag, List[str], int):
     links = []  # type : List[str]
@@ -358,3 +415,4 @@ def forward_until_inline_rating(contents: List[Tag], current_index) -> int:
             div_rating = current_element.find("div", {"class", "inline-rating"})
 
     return current_index
+
