@@ -21,6 +21,7 @@ PolitifactFactCheckingSiteExtractor_extraction_failed.log
 TruthorfictionFactCheckingSiteExtractor_extraction_failed.log
 CheckyourfactFactCheckingSiteExtractor_extraction_failed.log
 AfricacheckFactCheckingSiteExtractor_extraction_failed.log
+AfpfactcheckFactCheckingSiteExtractor_extraction_failed.log
 output_dev_fatabyyano.csv
 output_dev_vishvasnews.csv
 output_dev_aap.csv
@@ -30,3 +31,4 @@ output_dev_politifact.csv
 output_dev_truthorfiction.csv
 output_dev_checkyourfact.csv
 output_dev_africacheck.csv
+output_dev_afpfactcheck.csv
