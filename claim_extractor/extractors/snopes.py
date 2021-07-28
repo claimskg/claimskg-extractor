@@ -141,6 +141,8 @@ class SnopesFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         if parsed_claim_review_page.select( 'article > div > div > div > div.media-body > span' ):
             for rating_span in parsed_claim_review_page.select( 'article > div > div > div > div.media-body > span' ):
                 rating = rating_span.text.strip()
+                if (rating != ""):
+                    break
             claim.rating = str(rating).replace('"', "").strip()
         # claim.set_rating_value( rating )
 

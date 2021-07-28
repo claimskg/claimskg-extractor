@@ -19,11 +19,14 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         return ["https://checkyourfact.com/page/1/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        count = 26
+        count = 1
         url = "https://checkyourfact.com/page/" + str(count + 1)
         result = caching.get(url, headers=self.headers, timeout=10)
         if result:
             while result:
+                # each page 20 articles:
+                if (((count+1)*20)-20 >= self.configuration.maxClaims):
+                    break
                 count += 1
                 url = "https://checkyourfact.com/page/" + str(count)
                 result = caching.get(url, headers=self.headers, timeout=10)
