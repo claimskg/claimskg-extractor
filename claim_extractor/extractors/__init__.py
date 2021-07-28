@@ -61,7 +61,7 @@ class FactCheckingSiteExtractor(ABC):
         self.configuration = configuration
         self.ignore_urls = configuration.avoid_urls
         self.language = language
-        self.failed_log = open(self.__class__.__name__ + "_extraction_failed.log", "w")
+        self.failed_log = open("failed/" + self.__class__.__name__ + "_extraction_failed.log", "w")
         self.annotator = EntityFishingAnnotator(configuration.annotator_uri)
 
     def get_all_claims(self):
