@@ -79,6 +79,15 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         url_date = url.replace("https://checkyourfact.com/", "").replace("/", " ").split(" ")
         claim.set_date(url_date[0] + "-" + url_date[1] + "-" + url_date[2])
 
+        # author & author_url
+        if parsed_claim_review_page.select('detail > article > author'):
+            for author in parsed_claim_review_page.select('detail > article > author'):
+                if (hasattr(author,"data-slug")):
+                    author_str = author.text.split("|")[0].strip().split("\n")[0]
+                    claim.author = author_str
+                    claim.author_url = "https://checkyourfact.com/author/" + author['data-slug']
+                    break
+
         # body
         body = parsed_claim_review_page.find("article")
         claim.set_body(body.get_text())
