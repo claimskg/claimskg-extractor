@@ -20,6 +20,8 @@ This project is a fork of https://github.com/vwoloszyn/fake_news_extractor that 
 
 See the ClaimsKG dataset website for statistics (https://data.gesis.org/claimskg/site)
 
+See overview with example files at WIKI: https://github.com/claimskg/claimskg-extractor/wiki
+
 ### French
 
 - AFP Factuel - https://factuel.afp.com/
