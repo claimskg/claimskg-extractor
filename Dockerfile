@@ -1,5 +1,5 @@
 FROM redis
-MAINTAINER Sascha Schueller "sascha.schueller@gesis.org"
+LABEL maintainer="Sascha Schueller <sascha.schueller@gesis.org>"
 
 RUN apt-get update -y && \
     apt-get install -y python3-pip python3-dev git
