@@ -1,0 +1,7 @@
+version: '3.7'
+
+services:
+  claimskg-extractor:
+    image: claimskg-extractor:latest
+    volumes:
+      - ./output_got.csv:/app/output_got.csv

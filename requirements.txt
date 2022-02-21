@@ -8,4 +8,5 @@ rdflib
 tqdm
 yandex.translate
 contractions
+lxml
 git+https://github.com/issa-project/entity-fishing-client-python
