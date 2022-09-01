@@ -17,7 +17,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         super().__init__(configuration)
         
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ['https://www.politifact.com/factchecks/list']
+        return ['https://www.politifact.com/factchecks/'] #changes
     
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         max_page = 1000
@@ -26,9 +26,11 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
             -> List[str]:
         urls = self.extract_urls(parsed_listing_page)
+        #print(urls)
         page_number = 2
-        while True and ((page_number*30) <= self.configuration.maxClaims):
+        while True : ###changes
             url = listing_page_url + "?page=" + str(page_number)
+            #print(url)
             page = caching.get(url, headers=self.headers, timeout=5)
             if page is not None:
                 current_parsed_listing_page = BeautifulSoup(page, "lxml")
@@ -44,6 +46,7 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 urls += self.extract_urls(current_parsed_listing_page)
             page_number += 1
             #print("\rr: " + url)
+        print(urls)    
         return urls 
     
     def extract_urls(self, parsed_listing_page: BeautifulSoup):
@@ -162,11 +165,18 @@ class PolitifactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         div_tag = parsed_claim_review_page.find("article", {"class": "m-textblock"})
         related_links = []
         for link in body.find_all('a', href=True):
-            if (link['href'][0] == "/"):
-                    related_links.append("https://www.politifact.com" + link['href'])
-            else:
-                related_links.append(link['href'])
-        claim.set_refered_links(related_links)
+            try:
+                if (link['href'][0] == "/"):
+                        related_links.append("https://www.politifact.com" + link['href']) ##########changes
+                else:
+                    related_links.append(link['href'])
+                claim.set_refered_links(related_links)
+            except KeyError as e:
+                    print("->KeyError: " + str(e))
+                    continue
+            except IndexError as e:
+                    print("->IndexError: " + str(e))
+                    continue
 
         claim.set_claim(parsed_claim_review_page.find("div", {"class": "m-statement__quote"}).text.strip())
         

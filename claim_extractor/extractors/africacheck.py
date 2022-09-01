@@ -30,7 +30,7 @@ def get_all_claims(criteria):
             soup = BeautifulSoup(page.text, "lxml")
             soup.prettify()
             links = soup.findAll("div", {"class": "article-content"})
-
+            print(soup)
             if (len(links) != 0) or (links != last_page):
                 for anchor in links:
                     anchor = anchor.find('a', href=True)
@@ -135,6 +135,7 @@ def get_all_claims(criteria):
 
     # creating a pandas dataframe
     pdf = pd.DataFrame(claims)
+    print(pdf)
     return pdf
 
 
@@ -150,6 +151,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         last_page_link = parsed_listing_page.findAll("a", {"title": "Go to last page"})[0]['href']
         max_page = int(last_page_link.replace("?rt_bef_combine=created_DESC&sort_by=created&sort_order=DESC&search_api_fulltext=&sort_bef_combine=created_DESC&page=",""))
+        print(max_page)
         return max_page
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
@@ -294,6 +296,7 @@ class AfricacheckFactCheckingSiteExtractor(FactCheckingSiteExtractor):
          # body
         body = parsed_claim_review_page.find("div", {"class": "article--main"})
         claim.set_body(body.get_text())
+        print(claim.set_body(body.get_text()))
 
         # related links
         related_links = []
@@ -366,4 +369,3 @@ def forward_until_inline_rating(contents: List[Tag], current_index) -> int:
             div_rating = current_element.find("div", {"class", "inline-rating"})
 
     return current_index
-

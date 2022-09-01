@@ -67,29 +67,34 @@ class FactCheckingSiteExtractor(ABC):
     def get_all_claims(self):
         claims = []  # type : List[Claim]
 
-        listing_pages = self.retrieve_listing_page_urls()
+        listing_pages = self.retrieve_listing_page_urls() #######
         for listing_page_url in listing_pages:
             print("Fetching listing pages from " + listing_page_url)
             page = caching.get(listing_page_url, headers=self.headers, timeout=5)
             if not page:
                 continue
             parsed_listing_page = BeautifulSoup(page, self.configuration.parser_engine)
-            number_of_pages = self.find_page_count(parsed_listing_page)
+            number_of_pages = self.find_page_count(parsed_listing_page)  ######
+            
             if number_of_pages and number_of_pages < 0:
                 number_of_pages = None
-
-            urls = self.retrieve_urls(parsed_listing_page, listing_page_url, number_of_pages)
-
+            print(number_of_pages)
+            urls = self.retrieve_urls(parsed_listing_page, listing_page_url, number_of_pages)#####
+            
             print("Extracting claims listed in " + listing_page_url)
+            
             for url in tqdm(urls):
+                print(url)
                 try:
                     if "http" in url:
                         review_page = caching.get(url, headers=self.headers, timeout=6)
                         if review_page:
                             parsed_claim_review_page = BeautifulSoup(review_page, self.configuration.parser_engine)
                             claim = get_claim_from_cache(url)
+                       
                             if not claim:
                                 local_claims = self.extract_claim_and_review(parsed_claim_review_page, url)
+                                print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
                                 #for claim in local_claims: annotation is now in generator
                                 #    self._annotate_claim(claim)
                                 if len(local_claims) > 1:
@@ -106,6 +111,7 @@ class FactCheckingSiteExtractor(ABC):
                 except ConnectionError:
                     pass
         self.failed_log.close()
+        print(pandas.DataFrame(claims))
         return pandas.DataFrame(claims)
 
     def _annotate_claim(self, claim: Claim):

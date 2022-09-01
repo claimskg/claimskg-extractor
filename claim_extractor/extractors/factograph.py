@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import List
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup,UnicodeDammit
 from tqdm import tqdm
 
 from claim_extractor import Claim, Configuration
@@ -31,7 +31,7 @@ class FactographFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                 url = "https://www.factograph.info/z/20894/?p=" + str(count)
                 result = caching.get(url, headers=self.headers, timeout=10)
                 if result:
-                    parsed = BeautifulSoup(result, self.configuration.parser_engine)
+                    parsed = BeautifulSoup(result, self.configuration.parser_engine,from_encoding="'utf-8'")
                     articles = parsed.findAll("li", {"class": "fc__item"})
                     if not articles or len(articles) == 0:
                         break
@@ -90,8 +90,8 @@ class FactographFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # for b in body:
         #    claim.set_body(b.get_text())
         body = parsed_claim_review_page.find("div", {"id": "article-content"})
-        claim.set_body(body.get_text().replace("\n", ""))
-
+        claim.set_body(UnicodeDammit(body.get_text()).unicode_markup.replace("\n", ""))
+       
         # related related_links
         related_links = []
         for link in body.findAll('a', href=True):

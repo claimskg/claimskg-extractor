@@ -59,6 +59,7 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
             "https://www.vishvasnews.com/telugu/",
             "https://www.vishvasnews.com/marathi/",
             "https://www.vishvasnews.com/odia/"]
+            
         
         for url in url_begins:
             for value in different_categories_value:
@@ -145,15 +146,20 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
                     continue
                 else:
                     break
-
+        print(links)
         return links
 
     def extract_claim_and_review(self, parsed_claim_review_page: BeautifulSoup, url: str) -> List[Claim]:
         claim = Claim()
         claim_txt = self.extract_claim(parsed_claim_review_page)
+   
+
         review = self.extract_review(parsed_claim_review_page)
+    
         rating_value = self.extract_rating_value(parsed_claim_review_page, url)
+        
         claim.set_rating(rating_value)
+        #print(claim.set_rating)
         claim.set_source("Vishvanews")  # auteur de la review
         claim.review_author = self.extract_author(parsed_claim_review_page)
         claim.set_author(self.extract_claimed_by(
@@ -161,7 +167,7 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         # claim.setDatePublished(self.extract_date(parsed_claim_review_page)) #? publication de la claim
         claim.set_claim(claim_txt)
         claim.set_body(review)
-        claim.set_refered_links(self.extract_links(parsed_claim_review_page))
+        #claim.set_refered_links(self.extract_links(parsed_claim_review_page))
         claim.set_title(self.extract_title(parsed_claim_review_page))
         # date de la publication de la review
         claim.set_date(self.extract_date(parsed_claim_review_page))
@@ -220,8 +226,11 @@ class VishvasnewsFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         links = []
 
         # extracting the main article body
-        review_body = parsed_claim_review_page.select_one(
-            "div.lhs-area")
+        #review_body = parsed_claim_review_page.select_one("div.lhs-area")
+        
+        #review_body = parsed_claim_review_page.find('p', {'class': 'summery'})
+        review_body = parsed_claim_review_page.find('div', {'class': 'lhs-area'})
+       
 
         # extracting links
         for paragraph_tag in review_body.find_all("p"):

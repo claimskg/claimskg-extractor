@@ -12,10 +12,11 @@ default_label = "OTHER"
 
 count_ = 0
 current_websites = {
-    "english": ["snopes", "fullfact", "aap", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck"],
+    "english": ["snopes", "fullfact", "aap", "politifact", "truthorfiction", "checkyourfact", "factscan", "africacheck", "euvsdisinfo"],
     "portuguese": ["aosfatos", "lupa", "publica", "g1", "efarsas"],
     "german": ["mimikama", "correctiv"],
-    "arabic": ["fatabyyano"]
+    "arabic": ["fatabyyano"],
+    "french": ["afpfactuel"]
 }
 
 current_websites_invert = {}
@@ -47,9 +48,11 @@ def get_claims(configuration):
             extractor_class = getattr( module, web.capitalize() + "FactCheckingSiteExtractor" )
             extractor_instance = extractor_class( configuration )  # type : FactCheckingSiteExtractor
             claims = extractor_instance.get_all_claims()
+
+            #print(claims)
             output_data.append( claims )
         data_frame = pandas.concat( output_data )
         data_frame.to_csv( configuration.output, encoding="utf-8" )
         # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.to_csv.html
         data_frame.to_csv( configuration.output_dev, encoding="utf-8", sep=";", index=True )
-        data_frame.to_csv( configuration.output_sample, encoding="utf-8")
+        #data_frame.to_csv( configuration.output_sample, encoding="utf-8")

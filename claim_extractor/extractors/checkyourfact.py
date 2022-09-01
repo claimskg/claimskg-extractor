@@ -16,28 +16,29 @@ class CheckyourfactFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         self.date_regexp = re.compile("^([0-9]{4})/([0-9]{2})/([0-9]{2})*")
 
     def retrieve_listing_page_urls(self) -> List[str]:
-        return ["https://checkyourfact.com/page/1/"]
+        return ["https://checkyourfact.com/"]
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
         count = 1
-        url = "https://checkyourfact.com/page/" + str(count + 1)
+        url = "https://checkyourfact.com/page/" + str(count)
+        
         result = caching.get(url, headers=self.headers, timeout=10)
         if result:
             while result:
-                # each page 20 articles:
-                if (((count+1)*20)-20 >= self.configuration.maxClaims):
-                    break
                 count += 1
                 url = "https://checkyourfact.com/page/" + str(count)
+               
                 result = caching.get(url, headers=self.headers, timeout=10)
                 if result:
                     parsed = BeautifulSoup(result, self.configuration.parser_engine)
                     articles = parsed.find("articles").findAll("article")
                     if not articles or len(articles) == 0:
                         break
+                
+            
         else:
             count -= 1
-
+         
         return count
 
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \

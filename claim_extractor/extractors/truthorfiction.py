@@ -17,16 +17,8 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
     def retrieve_listing_page_urls(self) -> List[str]:
         return ["https://www.truthorfiction.com/category/fact-checks/"]
 
-    def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
-        page_nav = parsed_listing_page.find("div", {"class": "nav-previous"})
-        last_page_link = page_nav.findAll("a")[0]['href']
-        page_re = re.compile("https://www.truthorfiction.com/category/fact-checks/page/([0-9]+)/")
-        max_page = int(page_re.match(last_page_link).group(1))
-        if (max_page >= 2) and ((max_page*10) <= self.configuration.maxClaims):
-            page = caching.get(last_page_link, headers=self.headers, timeout=5)
-            if page:
-                parsed_listing_page = BeautifulSoup(page, self.configuration.parser_engine)
-                max_page = self.find_page_count(parsed_listing_page)
+    def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int: #####changes
+        max_page = 1000
         return max_page
         
     def retrieve_urls(self, parsed_listing_page: BeautifulSoup, listing_page_url: str, number_of_pages: int) \
@@ -35,8 +27,13 @@ class TruthorfictionFactCheckingSiteExtractor(FactCheckingSiteExtractor):
         for page_number in tqdm(range(1, number_of_pages)):
             url = "https://www.truthorfiction.com/category/fact-checks/page/" + str(page_number) + "/"
             page = caching.get(url, headers=self.headers, timeout=20)
-            current_parsed_listing_page = BeautifulSoup(page, "lxml")
-            urls += self.extract_urls(current_parsed_listing_page)
+            if page is not None:
+                current_parsed_listing_page = BeautifulSoup(page, "lxml")
+                urls += self.extract_urls(current_parsed_listing_page) #####changes
+            else:
+                break
+            #current_parsed_listing_page = BeautifulSoup(page, "lxml")
+           
         return urls
 
     def extract_urls(self, parsed_listing_page: BeautifulSoup):

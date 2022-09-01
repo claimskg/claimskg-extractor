@@ -14,33 +14,13 @@ from datetime import datetime
 class EuvsdisinfoFactCheckingSiteExtractor(FactCheckingSiteExtractor):
 
     def retrieve_listing_page_urls(self) -> List[str]:
+        data = caching.get('https://euvsdisinfo.eu/disinformation-cases')
+        print(data)
+        soup = BeautifulSoup(data, 'html.parser')
+        nb = self.find_page_count(soup)
         links = []
-        different_categories_value = ["disinformation-cases"]
-        url_begins = [
-            "https://euvsdisinfo.eu/",
-            "https://euvsdisinfo.eu/ru/",
-            "https://euvsdisinfo.eu/it/",
-            "https://euvsdisinfo.eu/es/",
-            "https://euvsdisinfo.eu/fr/",
-            "https://euvsdisinfo.eu/de/"]
-        
-        
-        for url in url_begins:
-            for value in different_categories_value:
-                #different_urls.append(url + value + "/")
-                # data = caching.get(f""+ url + value + "/")
-                data = caching.get("https://euvsdisinfo.eu/disinformation-cases/", headers=self.headers, timeout=15)
-                soup = BeautifulSoup(data, 'html.parser')
-                nb = self.find_page_count(soup)
-                for x in range(0, int(nb/10)):
-                    links.append(url + value + '/?offset=' + str(x*10))
-
-        # data = caching.get('https://euvsdisinfo.eu/disinformation-cases')
-        # soup = BeautifulSoup(data, 'html.parser')
-        # nb = self.find_page_count(soup)
-        # links = []
-        # for x in range(0, int(nb/10)):
-        #     links.append('https://euvsdisinfo.eu/disinformation-cases/?offset='+str(x*10))
+        for x in range(0, int(nb/10)):
+            links.append('https://euvsdisinfo.eu/disinformation-cases/?offset='+str(x*10))
         return links
 
     def find_page_count(self, parsed_listing_page: BeautifulSoup) -> int:
